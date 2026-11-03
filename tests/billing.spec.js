@@ -66,7 +66,7 @@ test('exports and restores a JSON backup', async ({ page }) => {
   await fillInvoice(page, 'Backup Test');
   await page.getByRole('button', { name: 'Save invoice' }).click();
   await page.getByRole('button', { name: 'Close' }).click();
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download backup' }).click();
   const download = await downloadPromise;
@@ -74,7 +74,7 @@ test('exports and restores a JSON backup', async ({ page }) => {
   expect(filePath).toBeTruthy();
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#restore').setInputFiles(filePath);
   await expect(page.locator('#main')).toContainText('Backup & restore');
@@ -84,7 +84,7 @@ test('exports and restores a JSON backup', async ({ page }) => {
 
 test('saves editable laboratory branding and preserves it after reload', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.locator('#pf input[name="brandTitle"]').fill('CITY DIAGNOSTIC CENTRE');
   await page.locator('#pf input[name="brandSubtitle"]').fill('Accurate Reports, Trusted Care');
   await page.getByRole('button', { name: 'Save settings' }).click();
