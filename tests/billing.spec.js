@@ -141,3 +141,21 @@ test('shows a transparent favicon and prints a bill directly from the invoice li
   expect(svg).toContain('<svg');
   expect(svg).not.toMatch(/<rect[^>]+fill=["'](?:#fff|white)["']/i);
 });
+
+
+test('responsive layout fits phone, tablet, laptop and desktop viewports', async ({ page }) => {
+  await page.goto('/');
+  for (const width of [320, 360, 390, 430, 768, 1024, 1366, 1920]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expect(page.locator('.layout')).toBeVisible();
+    const metrics = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      body: document.body.scrollWidth,
+      main: document.querySelector('main').getBoundingClientRect().width
+    }));
+    expect(metrics.document, `document overflow at ${width}px: ${JSON.stringify(metrics)}`).toBeLessThanOrEqual(metrics.viewport + 1);
+    expect(metrics.body, `body overflow at ${width}px: ${JSON.stringify(metrics)}`).toBeLessThanOrEqual(metrics.viewport + 1);
+    expect(metrics.main).toBeGreaterThan(0);
+  }
+});
