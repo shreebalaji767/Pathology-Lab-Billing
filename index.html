@@ -235,9 +235,6 @@ window.settingsPage=function(){
  section.querySelector('#plbExportCatalog').onclick=exportBillingCatalog;
  section.querySelector('#plbExportAudit').onclick=exportBillingAudit;
 };
-document.addEventListener('click',function(e){
- var b=e.target.closest('[data-invoice-action="delete"]');if(b){e.preventDefault();e.stopImmediatePropagation()}
-},true);
 audit('Application opened','Billing application initialized');
 })();
 </script></body></html>
