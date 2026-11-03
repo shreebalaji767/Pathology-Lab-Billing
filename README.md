@@ -1,29 +1,31 @@
-# Pathology Lab Billing
+# Pathology Lab Invoice Generator
 
-A free static pathology billing application built with vanilla HTML, CSS and JavaScript.
+A free, professional, invoice-only billing application built with vanilla HTML, CSS and JavaScript for GitHub Pages.
 
-## GitHub Pages deployment
-1. Open repository **Settings → Pages**.
-2. Under Build and deployment, choose **Deploy from a branch**.
-3. Select branch `main` and folder `/ (root)`.
-4. Save and wait for GitHub Pages to publish.
-5. Visit https://shreebalaji767.github.io/Pathology-Lab-Billing/
+## Deploy
+1. Open **Settings → Pages** in this repository.
+2. Select **Deploy from a branch**.
+3. Choose branch `main` and folder `/ (root)`.
+4. Save, then visit https://shreebalaji767.github.io/Pathology-Lab-Billing/.
 
-## Features
-- Editable laboratory name, subtitle, address, contact, registration, invoice title, prefix, footer, signatory and currency.
-- Patient directory and invoice history.
-- Editable pathology test catalogue and prices.
-- Test packages.
-- Referring doctor directory.
-- Invoice creation, editing, search and payment recording.
+## Invoice and billing features
+- Editable laboratory identity, address, contact details, registration, invoice title, prefix, sequence, currency and footer.
+- Patient details and referring-doctor selection.
+- Test catalogue and configurable packages.
+- Multiple invoice line items, quantities, rates, discounts and additional charges.
+- Automatic totals, amount received and outstanding balance.
+- Unique invoice numbering that checks existing invoice numbers.
+- Invoice history with patient / invoice search and date filters.
+- Partial payments with a dated payment history, method and reference note.
+- Invoice cancellation with a required reason; cancelled records remain in history and are excluded from daily collection totals.
+- A4 browser printing / Save as PDF and 80mm thermal receipt layout.
+- Barcode on the invoice.
 - Daily collection summary and CSV export.
-- Browser print / Save as PDF and 80mm thermal receipt layout.
-- Code 39 barcode for invoice number.
-- Full JSON backup and restore.
+- JSON backup and restore.
 - Responsive desktop, tablet and mobile layout.
 
-## Storage
-All data is stored in the current browser's localStorage. There is no backend, hosted database, account, cloud sync, paid API or external service. Data does not synchronize between devices or browsers. Export backups regularly.
+## Storage and privacy
+All records are stored in the current browser's localStorage. No backend, database, cloud sync, paid API, account or external service is used. Data does not synchronize between browsers or devices. Export backups regularly and protect access to the device.
 
-## Important
-This is a lightweight local billing tool, not a complete laboratory information management system (LIMS). It does not handle test results, sample tracking, quality control or regulatory reporting. Protect the device and follow applicable patient privacy and record-retention requirements. Browser print is used for PDF creation; thermal output depends on the printer and browser.
+## Scope
+This repository is for invoice generation and billing only. It is not a laboratory information management system and does not manage samples, test results or clinical report approval. Browser storage is not a secure multi-user medical-record system. Validate local legal, accounting and privacy requirements before operational use.
