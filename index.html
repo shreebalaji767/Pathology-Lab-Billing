@@ -39,20 +39,17 @@ function printBill(iid){let x=db.invoices.find(a=>a.id===iid);if(!x)return;let w
 <script>
 /* Invoice-level edit and delete actions. */
 (function(){
-  var previousTableBills=window.tableBills;
   window.tableBills=function(list){
     if(!list.length)return '<div class="empty">No records found.</div>';
     return '<div class="tablewrap"><table><tr><th>Invoice</th><th>Date</th><th>Patient</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th>Actions</th></tr>'+list.map(function(x){
-      var cancelled=x.status==='cancelled';
-      return '<tr><td>'+esc(x.no)+'</td><td>'+esc(x.date)+'</td><td>'+esc(x.patient)+'</td><td>'+cash(x.total)+'</td><td>'+cash(x.paid)+'</td><td>'+cash(x.due)+'</td><td><span class="pill '+(cancelled?'cancelled':x.due?'due':'')+'">'+(cancelled?'Cancelled':x.due?'Pending':'Paid')+'</span></td><td><div class="actions" style="margin:0;gap:5px"><button class="alt" onclick="viewBill(\\''+x.id+'\\')">Open</button>'+(cancelled?'':'<button class="alt" onclick="editBill(\\''+x.id+'\\')">Edit</button>')+'<button class="alt" onclick="printBill(\\''+x.id+'\\')">Print bill</button><button class="danger" onclick="deleteInvoice(\\''+x.id+'\\')">Delete</button></div></td></tr>';
+      var cancelled=x.status==='cancelled',q=JSON.stringify(x.id);
+      return '<tr><td>'+esc(x.no)+'</td><td>'+esc(x.date)+'</td><td>'+esc(x.patient)+'</td><td>'+cash(x.total)+'</td><td>'+cash(x.paid)+'</td><td>'+cash(x.due)+'</td><td><span class="pill '+(cancelled?'cancelled':x.due?'due':'')+'">'+(cancelled?'Cancelled':x.due?'Pending':'Paid')+'</span></td><td><div class="actions" style="margin:0;gap:5px"><button class="alt" onclick="viewBill('+q+')">Open</button>'+(cancelled?'':'<button class="alt" onclick="editBill('+q+')">Edit</button>')+'<button class="alt" onclick="printBill('+q+')">Print bill</button><button class="danger" onclick="deleteInvoice('+q+')">Delete</button></div></td></tr>';
     }).join('')+'</table></div>';
   };
   window.deleteInvoice=function(iid){
-    var x=db.invoices.find(function(v){return v.id===iid});
-    if(!x)return;
+    var x=db.invoices.find(function(v){return v.id===iid});if(!x)return;
     if(!confirm('Delete invoice '+x.no+' for '+x.patient+'? This permanently removes this invoice and its payment history from this browser.'))return;
-    db.invoices=db.invoices.filter(function(v){return v.id!==iid});
-    save();
+    db.invoices=db.invoices.filter(function(v){return v.id!==iid});save();
     if(!document.getElementById('modal').classList.contains('hidden'))closeM();
     render();
   };
