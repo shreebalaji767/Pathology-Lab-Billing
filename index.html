@@ -2,6 +2,84 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#123b50"><link rel="icon" type="image/svg+xml" href="./favicon.svg"><meta name="apple-mobile-web-app-title" content="Pathology Lab Billing"><title>Pathology Lab Billing</title>
 <style>
 :root{--navy:#123b50;--teal:#087e8b;--bg:#f3f6f8;--ink:#172b36;--muted:#667985;--line:#dce5e9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Arial}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:8px;padding:9px 13px;background:var(--navy);color:white;font-weight:650}button.alt{background:#e8eff2;color:var(--navy)}button.danger{background:#fff0ef;color:#b42318}.top{background:var(--navy);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}.top h1{font-size:18px;margin:0}.top small{color:#c5d7df}.layout{display:grid;grid-template-columns:220px 1fr;max-width:1500px;margin:auto;min-height:calc(100vh - 64px)}aside{background:white;border-right:1px solid var(--line);padding:12px}.nav{display:grid;gap:5px}.nav button{text-align:left;background:transparent;color:#425763}.nav button.active,.nav button:hover{background:#eaf3f5;color:var(--teal)}main{padding:22px;min-width:0}.head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}.head h2{margin:0;font-size:23px}.muted{color:var(--muted)}.panel,.stat{background:white;border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:23px;margin-top:5px}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field{display:grid;gap:5px}.field label{font-size:12px;font-weight:700;color:#536773}.field input,.field textarea,.field select,.toolbar input,.toolbar select{width:100%;min-width:0;border:1px solid #ccd9df;border-radius:8px;padding:9px;background:white}.field textarea{min-height:65px}.full{grid-column:1/-1}.toolbar,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar input{max-width:280px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:570px}th,td{text-align:left;padding:9px;border-bottom:1px solid #edf1f3}th{font-size:11px;text-transform:uppercase;color:#71818a;background:#f8fafb}td{font-size:13px}.pill{border-radius:20px;padding:3px 8px;background:#e8f5ee;color:#16804a;font-size:11px;font-weight:700}.due{background:#fff1e8;color:#a34c12}.empty{text-align:center;padding:25px;color:var(--muted)}.notice{padding:10px;background:#edf7f8;border-radius:8px;margin:12px 0;color:#245c66}.modal{position:fixed;inset:0;background:#0c202b80;display:grid;place-items:center;padding:14px;z-index:5}.modal.hidden{display:none}.modalbox{background:white;border-radius:13px;padding:18px;width:min(760px,100%);max-height:92vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modalhead h3{margin:0}.lines{display:grid;gap:7px}.line{display:grid;grid-template-columns:minmax(0,1fr) 70px 100px auto;gap:6px}.line input,.line select{width:100%;min-width:0;padding:8px;border:1px solid #ccd9df;border-radius:7px}.invoice{background:#fff;padding:20px;color:#172b36}.labtitle{text-align:center;font-size:21px;font-weight:800}.sub{text-align:center;color:#667985;font-size:12px}.invoice table{min-width:0}.right{text-align:right}.totals{width:min(300px,100%);margin-left:auto}.totals div{display:flex;justify-content:space-between;padding:4px}.grand{font-size:18px;font-weight:800;border-top:1px solid;padding-top:8px!important}.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:850px){.layout{grid-template-columns:1fr}aside{overflow:auto;border-right:0;border-bottom:1px solid var(--line)}.nav{display:flex;min-width:max-content}.nav button{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){main{padding:13px}.head{display:block}.head .actions{margin-top:10px}.form,.settings{grid-template-columns:1fr}.top{padding:12px}.top h1{font-size:15px}.line{grid-template-columns:minmax(0,1fr) 85px 48px 32px}.line-head{font-size:9px}.invoice{padding:10px}}@media print{.top,aside,.head,.no-print{display:none!important}.layout{display:block}main{padding:0}.invoice{padding:0}@page{margin:10mm}}
+</style><style>
+/* Responsive layout hardening: phones, tablets, laptops, and wide screens */
+html{width:100%;min-width:0;overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{width:100%;min-width:0;overflow-x:clip}
+.top{flex-wrap:wrap;padding:clamp(10px,2vw,18px) clamp(12px,3vw,24px)}
+.top>div:first-child{min-width:0;flex:1 1 220px}
+.top .actions{margin:0;justify-content:flex-end;flex:0 1 auto}
+.top h1{overflow-wrap:anywhere}
+.layout{width:100%;min-width:0;grid-template-columns:clamp(180px,18vw,250px) minmax(0,1fr)}
+aside,main{min-width:0}
+main{padding:clamp(12px,2vw,24px)}
+.nav button{min-width:0;overflow-wrap:anywhere}
+.head{flex-wrap:wrap;align-items:center}
+.head>div:first-child{min-width:0;flex:1 1 220px}
+.head .actions{min-width:0;flex:0 1 auto}
+.panel,.stat,.modalbox{min-width:0}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tablewrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+table{max-width:100%}
+th,td{overflow-wrap:anywhere}
+.toolbar{align-items:center;min-width:0}
+.toolbar input,.toolbar select{min-width:0;max-width:100%}
+.form,.settings{grid-template-columns:repeat(2,minmax(0,1fr))}
+.field,.field input,.field select,.field textarea{min-width:0;max-width:100%}
+.line{grid-template-columns:minmax(0,1fr) minmax(56px,78px) minmax(64px,100px) 36px;min-width:0}
+.line input,.line select{min-width:0}
+.modal{padding:clamp(6px,2vw,18px);align-items:center}
+.modalbox{width:min(900px,100%);max-height:min(94dvh,900px);overflow:auto;padding:clamp(12px,2.5vw,22px)}
+.invoice{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.invoice table{width:100%;min-width:0;table-layout:auto}
+.invoice th,.invoice td{overflow-wrap:anywhere;word-break:normal}
+.inv-party{grid-template-columns:repeat(2,minmax(0,1fr))}
+.totals{max-width:100%}
+@media(max-width:1050px){
+ .layout{grid-template-columns:1fr}
+ aside{padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}
+ .nav{display:flex;flex-wrap:nowrap;gap:5px;overflow-x:auto;max-width:100%;padding-bottom:3px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ .nav button{flex:0 0 auto;white-space:nowrap}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .top{align-items:flex-start}
+ .top .actions{flex:1 1 100%;justify-content:flex-start}
+ .top .actions button{flex:1 1 auto}
+ main{padding:12px}
+ .head{align-items:flex-start}
+ .head h2{font-size:clamp(19px,5vw,23px)}
+ .head .actions{width:100%}
+ .head .actions button{flex:1 1 auto}
+ .form,.settings{grid-template-columns:minmax(0,1fr)}
+ .line{grid-template-columns:minmax(0,1fr) minmax(55px,72px) minmax(60px,82px) 34px;gap:5px}
+ .line input,.line select{padding:7px 5px;font-size:13px}
+ .modal{align-items:flex-end;padding:0}
+ .modalbox{width:100%;max-height:94dvh;border-radius:14px 14px 0 0;padding:14px}
+ .inv-party{grid-template-columns:minmax(0,1fr)}
+ .invoice{padding:10px}
+ .invoice .labtitle{font-size:clamp(16px,4.5vw,21px)}
+ .invoice th,.invoice td{padding:6px 4px;font-size:12px}
+ .totals{width:100%;margin-left:0}
+}
+@media(max-width:400px){
+ body{font-size:13px}
+ button{padding:8px 10px;font-size:13px}
+ .top h1{font-size:14px}
+ .top small{font-size:11px}
+ .stats{gap:7px}
+ .stat{padding:10px}
+ .stat strong{font-size:clamp(16px,5vw,21px);overflow-wrap:anywhere}
+ .panel{padding:10px}
+ .line-head{font-size:8px}
+ .line{grid-template-columns:minmax(0,1fr) 52px 58px 30px}
+ .line button{padding:6px 4px}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .modalbox{max-height:90dvh}
+ .top{padding-block:8px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style></head><body>
 <header class="top"><div><h1 id="brand">YOUR PATHOLOGY LAB</h1><small id="brandSubtitle">Local laboratory billing & management</small></div><div class="actions"><button class="alt" onclick="go('settings')">Settings</button><button class="alt" onclick="newBill()">＋ New invoice</button></div></header>
 <div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
