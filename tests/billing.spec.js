@@ -117,3 +117,27 @@ test('exports a date-filtered CSV report', async ({ page }) => {
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toContain('pathology-invoices-');
 });
+
+
+test('shows a transparent favicon and prints a bill directly from the invoice list', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Direct Print Test');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Invoices' }).click();
+  await expect(page.getByRole('button', { name: 'Print bill' })).toBeVisible();
+
+  const popupPromise = page.waitForEvent('popup');
+  await page.getByRole('button', { name: 'Print bill' }).click();
+  const popup = await popupPromise;
+  await expect(popup.locator('body')).toContainText('Direct Print Test');
+  await expect(popup.locator('body')).toContainText('Complete Blood Count');
+
+  const favicon = await page.locator('link[rel="icon"]').getAttribute('href');
+  expect(favicon).toContain('favicon.svg');
+  const response = await page.request.get(new URL(favicon, page.url()).toString());
+  expect(response.ok()).toBeTruthy();
+  const svg = await response.text();
+  expect(svg).toContain('<svg');
+  expect(svg).not.toMatch(/<rect[^>]+fill=["'](?:#fff|white)["']/i);
+});
