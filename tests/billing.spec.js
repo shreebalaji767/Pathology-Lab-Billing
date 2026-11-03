@@ -98,7 +98,7 @@ test('edits an existing invoice without losing its recorded payment', async ({ p
   await openNewInvoice(page);
   await fillInvoice(page, 'Edit Test');
   await page.getByRole('button', { name: 'Save invoice' }).click();
-  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.locator('#mbody').getByRole('button', { name: 'Edit', exact: true }).click();
   await page.locator('#bf input[aria-label="Test price"]').first().fill('600');
   await page.getByRole('button', { name: 'Save invoice' }).click();
   await expect(page.locator('#mbody')).toContainText('₹600.00');
