@@ -52,6 +52,31 @@ var oldInvoicePage=window.invoicePage;
 window.invoicePage=function(){oldInvoicePage();var bar=document.querySelector('#main .toolbar');if(!bar)return;var d=document.createElement('input');d.type='date';d.id='invoiceDate';d.setAttribute('aria-label','Filter by date');d.onchange=filterBills;bar.appendChild(d);var clear=document.createElement('button');clear.className='alt';clear.textContent='Clear filters';clear.onclick=function(){document.getElementById('q').value='';document.getElementById('status').value='';d.value='';filterBills()};bar.appendChild(clear);var s=document.getElementById('status');s.insertAdjacentHTML('beforeend','<option value="cancelled">Cancelled</option>')};
 window.filterBills=function(){var q=(document.getElementById('q')?.value||'').toLowerCase(),s=document.getElementById('status')?.value||'',d=document.getElementById('invoiceDate')?.value||'';var a=db.invoices.slice().reverse().filter(function(x){return (x.no+x.patient+x.phone).toLowerCase().includes(q)&&(!d||x.date===d)&&(!s||(s==='due'?x.due>0:s==='paid'?x.due===0:x.status==='cancelled'))});document.getElementById('billlist').innerHTML=tableBills(a)};
 })();
+</script><script>
+(function(){
+window.csv=function(){
+var date=document.getElementById('rd')?.value||today();
+var rows=[['Invoice','Date','Patient','Phone','Subtotal','Discount','Charges','Total','Paid','Due','Status','Payment method']];
+db.invoices.filter(function(x){return x.date===date}).forEach(function(x){rows.push([x.no,x.date,x.patient,x.phone,x.subtotal,x.discount,x.charges,x.total,x.paid,x.due,x.status||'active',x.method])});
+var a=document.createElement('a'),blob=new Blob([rows.map(function(r){return r.map(function(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}).join(',')}).join('\n')],{type:'text/csv;charset=utf-8'});
+a.href=URL.createObjectURL(blob);a.download='pathology-invoices-'+date+'.csv';a.click();URL.revokeObjectURL(a.href);
+};
+var oldPayment=window.payment;
+window.payment=function(id){
+oldPayment(id);
+var x=db.invoices.find(function(v){return v.id===id}),host=document.querySelector('#mbody .payment-log');
+if(!x||!host)return;
+Array.from(host.children).forEach(function(row,i){
+var n=x.payments.length-1-i,p=x.payments[n],b=document.createElement('button');
+b.type='button';b.className='alt';b.textContent='Print receipt';b.style.marginTop='6px';
+b.onclick=function(){
+var w=window.open('','_blank');if(!w)return alert('Allow pop-ups to print the receipt.');
+w.document.write('<!doctype html><html><head><title>Payment receipt</title><style>body{font:14px Arial;max-width:500px;margin:25px auto;padding:15px;color:#172b36}.center{text-align:center}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ddd}@page{margin:12mm}</style></head><body><div class="center"><h2>'+esc(db.profile.name)+'</h2><div>'+esc(db.profile.address)+'</div><div>'+esc(db.profile.phone)+'</div><hr><h3>PAYMENT RECEIPT</h3></div><div class="row"><span>Invoice</span><b>'+esc(x.no)+'</b></div><div class="row"><span>Patient</span><b>'+esc(x.patient)+'</b></div><div class="row"><span>Date</span><b>'+esc(p.date)+'</b></div><div class="row"><span>Method</span><b>'+esc(p.method)+'</b></div><div class="row"><span>Received</span><b>'+cash(p.amount)+'</b></div><div class="row"><span>Balance due</span><b>'+cash(x.due)+'</b></div><p class="center">'+esc(db.profile.footer)+'</p></body></html>');
+w.document.close();w.onload=function(){w.print()};
+};row.appendChild(b);
+});
+};
+})();
 </script></body></html>');w.document.close();w.onload=()=>{barcode(w.document.querySelector('svg'),x.no);w.print()}}
 function thermal(iid){let x=db.invoices.find(a=>a.id===iid),w=window.open('','_blank');w.document.write('<html><head><style>body{font:12px monospace;width:72mm;margin:4mm}h3,p{text-align:center}table{width:100%}td{padding:4px 0;border-bottom:1px dashed #aaa}.r{text-align:right}@page{size:80mm auto;margin:3mm}</style></head><body><h3>'+esc(db.profile.name)+'</h3><p>'+esc(db.profile.address)+'<br>'+esc(db.profile.phone)+'</p><hr>'+esc(x.no)+'<br>'+esc(x.date)+'<br>'+esc(x.patient)+'<hr><table>'+x.items.map(a=>'<tr><td>'+esc(a.name)+' x'+a.qty+'</td><td class="r">'+cash(a.qty*a.price)+'</td></tr>').join('')+'</table><hr><p>Subtotal '+cash(x.subtotal)+'<br>Discount '+cash(x.discount)+'<br><b>Total '+cash(x.total)+'</b><br>Paid '+cash(x.paid)+'<br>Due '+cash(x.due)+'</p><p>'+esc(db.profile.footer)+'</p></body></html>');w.document.close();w.onload=()=>w.print()}
 function editBill(iid){let x=db.invoices.find(a=>a.id===iid);closeM();billForm(x)}function payment(iid){let x=db.invoices.find(a=>a.id===iid);modal('Record payment','<p>Outstanding: <b>'+cash(x.due)+'</b></p><form id="pay"><div class="form">'+field('Amount received','amount','','number')+'<div class="field"><label>Method</label><select name="method"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank transfer</option></select></div><div class="full"><button>Save payment</button></div></div></form>');document.getElementById('pay').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),n=Number(f.get('amount'));if(n<=0||n>x.due)return alert('Enter valid amount');x.paid+=n;x.due=x.total-x.paid;x.method=f.get('method');save();closeM();viewBill(iid)}}
