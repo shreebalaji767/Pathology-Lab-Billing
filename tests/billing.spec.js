@@ -57,8 +57,8 @@ test('cancels invoice only after a reason is entered', async ({ page }) => {
   await page.getByRole('button', { name: 'Save invoice' }).click();
   page.once('dialog', dialog => dialog.accept('Entered by mistake'));
   await page.getByRole('button', { name: 'Cancel invoice' }).click();
-  await expect(page.locator('#mbody')).toContainText('CANCELLED');
-  await expect(page.locator('#mbody')).toContainText('Entered by mistake');
+  await expect(page.locator('#billlist')).toContainText('Cancellation Test');
+  await expect(page.locator('#billlist')).toContainText('Cancelled');
 });
 
 test('exports and restores a JSON backup', async ({ page }) => {
@@ -92,4 +92,28 @@ test('saves editable laboratory branding and preserves it after reload', async (
   await page.reload();
   await expect(page.locator('#brand')).toHaveText('CITY DIAGNOSTIC CENTRE');
   await expect(page.locator('#brandSubtitle')).toHaveText('Accurate Reports, Trusted Care');
+});
+
+test('edits an existing invoice without losing its recorded payment', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Edit Test');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.locator('#bf input[aria-label="Test price"]').first().fill('600');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await expect(page.locator('#mbody')).toContainText('₹600.00');
+  await expect(page.locator('#mbody')).toContainText('₹200.00');
+  await expect(page.locator('#mbody')).toContainText('₹400.00');
+});
+
+test('exports a date-filtered CSV report', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'CSV Export Test');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Collection reports' }).click();
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toContain('pathology-invoices-');
 });
