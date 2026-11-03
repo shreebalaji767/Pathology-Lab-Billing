@@ -139,4 +139,105 @@ window.invoiceHTML=function(x){var html=originalInvoiceHTML(x);if(x.status==='ca
 window.editBill=function(iid){var x=db.invoices.find(a=>a.id===iid);if(!x)return;if(x.status==='cancelled')return alert('Cancelled invoices cannot be edited.');closeM();billForm(x)};
 window.invoiceHTML=function(x){var p=db.profile,logo=p.logoUrl?'<img src="'+esc(p.logoUrl)+'" alt="Laboratory logo" style="width:64px;height:64px;object-fit:contain">':'';return '<div style="display:flex;align-items:center;gap:14px"><div>'+logo+'</div><div style="flex:1;text-align:center"><div class="labtitle">'+esc(p.name)+'</div><div class="sub">'+esc(p.subtitle)+'</div><div style="font-size:11px;color:#667985">'+esc(p.address)+' · '+esc(p.phone)+' · '+esc(p.email)+'<br>'+esc(p.registration)+'</div></div></div><hr><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>'+esc(p.invoiceTitle)+'</b><b>Invoice: '+esc(x.no)+'</b></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0"><div style="border:1px solid #dce5e9;border-radius:7px;padding:10px"><small> PATIENT </small><br><b>'+esc(x.patient)+'</b><br>Age / Gender: '+esc(x.age)+' / '+esc(x.gender)+'<br>Mobile: '+esc(x.phone)+'<br>'+esc(x.address)+'</div><div style="border:1px solid #dce5e9;border-radius:7px;padding:10px"><small> INVOICE DETAILS </small><br>Date: '+esc(x.date)+'<br>Referring doctor: '+esc(x.doctor||'—')+'<br>Status: '+(x.status==='cancelled'?'CANCELLED':x.due>0?'PENDING':'PAID')+'<br>Payment method: '+esc(x.method||'—')+'</div></div><table style="width:100%;border-collapse:collapse"><tr><th style="background:#eef3f5;padding:9px;text-align:left">#</th><th style="background:#eef3f5;padding:9px;text-align:left">Description</th><th style="background:#eef3f5;padding:9px">Qty</th><th style="background:#eef3f5;padding:9px;text-align:right">Rate</th><th style="background:#eef3f5;padding:9px;text-align:right">Amount</th></tr>'+x.items.map(function(a,i){return '<tr><td style="padding:9px;border-bottom:1px solid #e5eaed">'+(i+1)+'</td><td style="padding:9px;border-bottom:1px solid #e5eaed">'+esc(a.name)+'</td><td style="padding:9px;border-bottom:1px solid #e5eaed;text-align:center">'+a.qty+'</td><td style="padding:9px;border-bottom:1px solid #e5eaed;text-align:right">'+cash(a.price)+'</td><td style="padding:9px;border-bottom:1px solid #e5eaed;text-align:right">'+cash(a.qty*a.price)+'</td></tr>'}).join('')+'</table><div class="totals"><div><span>Subtotal</span><b>'+cash(x.subtotal)+'</b></div><div><span>Discount</span><b>− '+cash(x.discount)+'</b></div><div><span>Additional charges</span><b>'+cash(x.charges)+'</b></div><div class="grand"><span>Grand total</span><span>'+cash(x.total)+'</span></div><div><span>Amount received</span><b>'+cash(x.paid)+'</b></div><div><span>Balance due</span><b>'+cash(x.due)+'</b></div></div><div style="border-top:1px solid #e1e7eb;margin-top:18px;padding-top:10px;font-size:12px">'+esc(p.footer)+'</div>'+(x.status==='cancelled'?'<p style="color:#a12626;font-weight:bold">CANCELLED — '+esc(x.cancelReason||'')+'</p>':'')+'<div style="display:flex;justify-content:space-between;margin-top:38px"><span>Patient signature</span><span style="text-align:center">'+esc(p.signatory)+'<br>____________________</span></div><div style="text-align:center;margin-top:12px"><svg id="barcode"></svg><div style="font-size:10px">'+esc(x.no)+'</div></div>'};
 })();
-</script><script>var _renderBeforeBrand=window.render;window.render=function(){_renderBeforeBrand();applyBrand()};applyBrand();</script><script>(function(){var oldView=window.viewBill;window.duplicateInvoice=function(id){var x=db.invoices.find(function(v){return v.id===id});if(!x||x.status==='cancelled')return alert('This invoice cannot be duplicated.');var y=JSON.parse(JSON.stringify(x));y.id=undefined;y.no=undefined;y.date=today();y.paid=0;y.due=y.total;y.payments=[];y.status='active';delete y.cancelReason;delete y.cancelledAt;closeM();billForm(y);var f=document.getElementById('bf');if(f){f.paid.value=0;f.date.value=today()}};window.viewBill=function(id){oldView(id);var a=document.querySelector('#mbody .actions'),x=db.invoices.find(function(v){return v.id===id});if(a&&x&&x.status!=='cancelled'){var b=document.createElement('button');b.className='alt';b.textContent='Duplicate invoice';b.onclick=function(){duplicateInvoice(id)};a.appendChild(b)}};var oldPage=window.invoicePage;window.invoicePage=function(){oldPage();var bar=document.querySelector('#main .toolbar');if(!bar)return;var d=document.createElement('input');d.type='date';d.id='invoiceDate';d.onchange=filterBills;d.setAttribute('aria-label','Filter by date');bar.appendChild(d);var s=document.getElementById('status');s.insertAdjacentHTML('beforeend','<option value="cancelled">Cancelled</option>')};window.filterBills=function(){var q=(document.getElementById('q').value||'').toLowerCase(),s=document.getElementById('status').value,d=document.getElementById('invoiceDate')?.value||'';var a=db.invoices.slice().reverse().filter(function(x){return (x.no+x.patient+x.phone).toLowerCase().includes(q)&&(!d||x.date===d)&&(!s||(s==='due'?x.due>0:s==='paid'?x.due===0:x.status==='cancelled'))});document.getElementById('billlist').innerHTML=tableBills(a)};})();</script><script>(function(){window.csv=function(){var d=document.getElementById('rd')?.value||today(),rows=[['Invoice','Date','Patient','Phone','Total','Paid','Due','Status','Payment method']];db.invoices.filter(function(x){return x.date===d}).forEach(function(x){rows.push([x.no,x.date,x.patient,x.phone,x.total,x.paid,x.due,x.status||'active',x.method])});var a=document.createElement('a'),blob=new Blob([rows.map(function(r){return r.map(function(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}).join(',')}).join('\n')],{type:'text/csv;charset=utf-8'});a.href=URL.createObjectURL(blob);a.download='pathology-invoices-'+d+'.csv';a.click();URL.revokeObjectURL(a.href)};var oldPay=window.payment;window.payment=function(id){oldPay(id);var x=db.invoices.find(function(v){return v.id===id}),host=document.querySelector('#mbody .payment-log');if(!x||!host)return;Array.from(host.children).forEach(function(row,i){var p=x.payments[x.payments.length-1-i],b=document.createElement('button');b.type='button';b.className='alt';b.textContent='Print receipt';b.onclick=function(){var w=window.open('','_blank');if(!w)return alert('Allow pop-ups to print.');w.document.write('<html><head><title>Payment receipt</title></head><body style="font:14px Arial;max-width:480px;margin:25px auto"><h2>'+esc(db.profile.name)+'</h2><h3>PAYMENT RECEIPT</h3><p>Invoice: '+esc(x.no)+'<br>Patient: '+esc(x.patient)+'<br>Date: '+esc(p.date)+'<br>Method: '+esc(p.method)+'</p><h2>Received: '+cash(p.amount)+'</h2><p>Balance due: '+cash(x.due)+'</p><p>'+esc(db.profile.footer)+'</p></body></html>');w.document.close();w.onload=function(){w.print()}};row.appendChild(b)})}})();</script></body></html>
+</script><script>var _renderBeforeBrand=window.render;window.render=function(){_renderBeforeBrand();applyBrand()};applyBrand();</script><script>(function(){var oldView=window.viewBill;window.duplicateInvoice=function(id){var x=db.invoices.find(function(v){return v.id===id});if(!x||x.status==='cancelled')return alert('This invoice cannot be duplicated.');var y=JSON.parse(JSON.stringify(x));y.id=undefined;y.no=undefined;y.date=today();y.paid=0;y.due=y.total;y.payments=[];y.status='active';delete y.cancelReason;delete y.cancelledAt;closeM();billForm(y);var f=document.getElementById('bf');if(f){f.paid.value=0;f.date.value=today()}};window.viewBill=function(id){oldView(id);var a=document.querySelector('#mbody .actions'),x=db.invoices.find(function(v){return v.id===id});if(a&&x&&x.status!=='cancelled'){var b=document.createElement('button');b.className='alt';b.textContent='Duplicate invoice';b.onclick=function(){duplicateInvoice(id)};a.appendChild(b)}};var oldPage=window.invoicePage;window.invoicePage=function(){oldPage();var bar=document.querySelector('#main .toolbar');if(!bar)return;var d=document.createElement('input');d.type='date';d.id='invoiceDate';d.onchange=filterBills;d.setAttribute('aria-label','Filter by date');bar.appendChild(d);var s=document.getElementById('status');s.insertAdjacentHTML('beforeend','<option value="cancelled">Cancelled</option>')};window.filterBills=function(){var q=(document.getElementById('q').value||'').toLowerCase(),s=document.getElementById('status').value,d=document.getElementById('invoiceDate')?.value||'';var a=db.invoices.slice().reverse().filter(function(x){return (x.no+x.patient+x.phone).toLowerCase().includes(q)&&(!d||x.date===d)&&(!s||(s==='due'?x.due>0:s==='paid'?x.due===0:x.status==='cancelled'))});document.getElementById('billlist').innerHTML=tableBills(a)};})();</script><script>(function(){window.csv=function(){var d=document.getElementById('rd')?.value||today(),rows=[['Invoice','Date','Patient','Phone','Total','Paid','Due','Status','Payment method']];db.invoices.filter(function(x){return x.date===d}).forEach(function(x){rows.push([x.no,x.date,x.patient,x.phone,x.total,x.paid,x.due,x.status||'active',x.method])});var a=document.createElement('a'),blob=new Blob([rows.map(function(r){return r.map(function(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}).join(',')}).join('\n')],{type:'text/csv;charset=utf-8'});a.href=URL.createObjectURL(blob);a.download='pathology-invoices-'+d+'.csv';a.click();URL.revokeObjectURL(a.href)};var oldPay=window.payment;window.payment=function(id){oldPay(id);var x=db.invoices.find(function(v){return v.id===id}),host=document.querySelector('#mbody .payment-log');if(!x||!host)return;Array.from(host.children).forEach(function(row,i){var p=x.payments[x.payments.length-1-i],b=document.createElement('button');b.type='button';b.className='alt';b.textContent='Print receipt';b.onclick=function(){var w=window.open('','_blank');if(!w)return alert('Allow pop-ups to print.');w.document.write('<html><head><title>Payment receipt</title></head><body style="font:14px Arial;max-width:480px;margin:25px auto"><h2>'+esc(db.profile.name)+'</h2><h3>PAYMENT RECEIPT</h3><p>Invoice: '+esc(x.no)+'<br>Patient: '+esc(x.patient)+'<br>Date: '+esc(p.date)+'<br>Method: '+esc(p.method)+'</p><h2>Received: '+cash(p.amount)+'</h2><p>Balance due: '+cash(x.due)+'</p><p>'+esc(db.profile.footer)+'</p></body></html>');w.document.close();w.onload=function(){w.print()}};row.appendChild(b)})}})();</script>
+<script>
+(function(){
+'use strict';
+var AUDIT_KEY='plb_audit_v2', BACKUP_KEY='plb_backup_at_v2';
+function audit(action,detail){
+ try{var a=JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');a.push({at:new Date().toISOString(),action:action,detail:String(detail||'')});localStorage.setItem(AUDIT_KEY,JSON.stringify(a.slice(-1000)))}catch(e){}
+}
+function download(name,data,type){
+ var blob=new Blob([data],{type:type||'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1500);
+}
+var originalSave=window.save;
+window.save=function(){
+ var ok=originalSave.apply(this,arguments);
+ if(ok!==false){try{localStorage.setItem('plb_last_saved_v2',new Date().toISOString())}catch(e){}}
+ return ok;
+};
+var originalBackup=window.backup;
+window.backup=function(){
+ originalBackup.apply(this,arguments);
+ try{localStorage.setItem(BACKUP_KEY,new Date().toISOString())}catch(e){}
+ audit('Full backup downloaded','All local application data');
+ var el=document.getElementById('plbBackupStatus');if(el)el.textContent='Last full backup: '+new Date().toLocaleString();
+};
+document.addEventListener('submit',function(e){
+ var f=e.target;
+ if(!f||f.id!=='bf')return;
+ var d=Number(f.elements.discount.value||0),c=Number(f.elements.charges.value||0),p=Number(f.elements.paid.value||0);
+ var sub=(Array.isArray(window.lines)?window.lines:[]).reduce(function(n,l){return n+(Number(l.qty)||0)*(Number(l.price)||0)},0);
+ var bad=!Number.isFinite(d)||!Number.isFinite(c)||!Number.isFinite(p)||d<0||d>sub||c<0||p<0||p>sub-d+c;
+ var invalidLine=(Array.isArray(window.lines)?window.lines:[]).some(function(l){return !Number.isFinite(Number(l.qty))||Number(l.qty)<1||Math.floor(Number(l.qty))!==Number(l.qty)||!Number.isFinite(Number(l.price))||Number(l.price)<0});
+ if(bad||invalidLine){e.preventDefault();e.stopImmediatePropagation();alert('Check invoice amounts: discount must be between ₹0 and subtotal, charges cannot be negative, payment cannot exceed the total, and quantity/price must be valid.');return}
+ var zeros=(Array.isArray(window.lines)?window.lines:[]).filter(function(l){return l.name&&Number(l.price)===0});
+ if(zeros.length&&!confirm('Warning: '+zeros.length+' invoice line(s) have a ₹0 price. Verify these prices before continuing.')){e.preventDefault();e.stopImmediatePropagation();return}
+ audit('Invoice submitted',f.elements.patient.value||'');
+},true);
+document.addEventListener('submit',function(e){
+ if(e.target&&e.target.id==='pay')audit('Payment form submitted','Payment recorded for an invoice');
+},true);
+var originalCancel=window.cancelInvoice;
+if(typeof originalCancel==='function')window.cancelInvoice=function(id){
+ var x=db.invoices.find(function(v){return v.id===id});if(!x)return;
+ originalCancel.apply(this,arguments);
+ if(x.status==='cancelled')audit('Invoice cancelled',x.no+' · '+(x.cancelReason||''));
+};
+window.deleteInvoice=function(id){
+ var x=db.invoices.find(function(v){return v.id===id});if(!x)return;
+ if(!confirm('Archive invoice '+x.no+'? It will remain in your records with its payment history.'))return;
+ var reason=prompt('Reason for archiving this invoice:');if(!reason||!reason.trim())return;
+ x.status='cancelled';x.cancelReason=reason.trim();x.cancelledAt=new Date().toISOString();
+ if(window.save()!==false){audit('Invoice archived',x.no+' · '+reason.trim());render()}
+};
+window.exportBillingAudit=function(){download('pathology-billing-audit.json',localStorage.getItem(AUDIT_KEY)||'[]')};
+window.exportBillingInvoices=function(){download('pathology-invoices.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),invoices:db.invoices},null,2))};
+window.exportBillingCatalog=function(){download('pathology-catalog.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),tests:db.tests,packages:db.packages,doctors:db.doctors},null,2))};
+window.restore=function(event){
+ var file=event.target.files&&event.target.files[0];if(!file)return;
+ var reader=new FileReader();
+ reader.onload=function(){
+  var d;
+  try{
+   d=JSON.parse(reader.result);
+   if(!d||!d.profile||!Array.isArray(d.invoices)||!Array.isArray(d.tests)||!Array.isArray(d.patients)||!Array.isArray(d.packages)||!Array.isArray(d.doctors))throw new Error('Backup is missing required sections.');
+   var seen=Object.create(null);
+   d.invoices.forEach(function(x){if(!x||!x.no||!x.id||!Array.isArray(x.items)||seen[x.no])throw new Error('Backup contains an invalid invoice or duplicate invoice number: '+(x&&x.no||''));seen[x.no]=true});
+   d.invoices.forEach(function(x){if(!Array.isArray(x.payments))x.payments=[];if(!x.status)x.status='active';});
+   var preview='Restore preview\n\nInvoices: '+d.invoices.length+'\nPatients: '+d.patients.length+'\nTests: '+d.tests.length+'\nPackages: '+d.packages.length+'\nDoctors: '+d.doctors.length+'\n\nThis replaces the data currently stored in this browser. Continue?';
+   if(!confirm(preview))return;
+   var previous=db, restored=Object.assign(structuredClone(blank),d);
+   var used=restored.invoices.map(function(x){return String(x.no)}),next=Math.max(1,Number(restored.profile.next)||1);
+   restored.invoices.forEach(function(x){var m=String(x.no).match(/-(\d+)$/);if(m)next=Math.max(next,Number(m[1])+1)});
+   restored.profile.next=next;
+   db=restored;
+   if(window.save()===false){db=previous;alert('Restore could not be saved. Your previous data remains in memory.');return}
+   audit('Backup restored','Invoices: '+d.invoices.length);
+   render();alert('Backup restored successfully. Check invoice numbering before issuing new bills.');
+  }catch(err){alert('Invalid backup: '+(err&&err.message||'Could not read file.'))}
+  finally{event.target.value=''}
+ };
+ reader.readAsText(file);
+};
+var originalSettings=window.settingsPage;
+window.settingsPage=function(){
+ originalSettings.apply(this,arguments);
+ var host=document.querySelector('#main');
+ if(!host||document.getElementById('plbBackupTools'))return;
+ var section=document.createElement('section');section.className='panel';section.id='plbBackupTools';
+ var last=localStorage.getItem(BACKUP_KEY);
+ section.innerHTML='<h3>Separate exports & audit</h3><p class="muted" id="plbBackupStatus"></p><div class="actions"><button type="button" class="alt" id="plbExportInvoices">Export invoices only</button><button type="button" class="alt" id="plbExportCatalog">Export test & package catalogue</button><button type="button" class="alt" id="plbExportAudit">Export audit log</button></div><p class="muted">Keep an external backup. Data remains in this browser only; exports are not uploaded anywhere.</p>';
+ host.appendChild(section);
+ section.querySelector('#plbBackupStatus').textContent=last?'Last full backup: '+new Date(last).toLocaleString():'No full backup recorded in this browser yet.';
+ section.querySelector('#plbExportInvoices').onclick=exportBillingInvoices;
+ section.querySelector('#plbExportCatalog').onclick=exportBillingCatalog;
+ section.querySelector('#plbExportAudit').onclick=exportBillingAudit;
+};
+document.addEventListener('click',function(e){
+ var b=e.target.closest('[data-invoice-action="delete"]');if(b){e.preventDefault();e.stopImmediatePropagation()}
+},true);
+audit('Application opened','Billing application initialized');
+})();
+</script></body></html>
