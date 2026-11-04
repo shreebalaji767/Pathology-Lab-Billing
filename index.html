@@ -170,7 +170,7 @@ document.addEventListener('submit',function(e){
  if(!f||f.id!=='bf')return;
  var raw=function(name){var el=f.elements[name];return el&&el.value!==''?Number(el.value):0};
  var d=raw('discount'),c=raw('charges'),p=raw('paid');
- var rows=Array.isArray(window.lines)?window.lines:[];
+ var rows=typeof lines!=='undefined'&&Array.isArray(lines)?lines:[];
  var invalidLine=rows.some(function(l){var q=Number(l.qty),price=Number(l.price);return !Number.isFinite(q)||q<1||Math.floor(q)!==q||!Number.isFinite(price)||price<0});
  var sub=rows.reduce(function(n,l){return n+Number(l.qty)*Number(l.price)},0);
  var total=sub-d+c;
