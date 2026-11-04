@@ -168,12 +168,15 @@ window.backup=function(){
 document.addEventListener('submit',function(e){
  var f=e.target;
  if(!f||f.id!=='bf')return;
- var d=Number(f.elements.discount.value||0),c=Number(f.elements.charges.value||0),p=Number(f.elements.paid.value||0);
- var sub=(Array.isArray(window.lines)?window.lines:[]).reduce(function(n,l){return n+(Number(l.qty)||0)*(Number(l.price)||0)},0);
- var bad=!Number.isFinite(d)||!Number.isFinite(c)||!Number.isFinite(p)||d<0||d>sub||c<0||p<0||p>sub-d+c;
- var invalidLine=(Array.isArray(window.lines)?window.lines:[]).some(function(l){return !Number.isFinite(Number(l.qty))||Number(l.qty)<1||Math.floor(Number(l.qty))!==Number(l.qty)||!Number.isFinite(Number(l.price))||Number(l.price)<0});
- if(bad||invalidLine){e.preventDefault();e.stopImmediatePropagation();alert('Check invoice amounts: discount must be between ₹0 and subtotal, charges cannot be negative, payment cannot exceed the total, and quantity/price must be valid.');return}
- var zeros=(Array.isArray(window.lines)?window.lines:[]).filter(function(l){return l.name&&Number(l.price)===0});
+ var raw=function(name){var el=f.elements[name];return el&&el.value!==''?Number(el.value):0};
+ var d=raw('discount'),c=raw('charges'),p=raw('paid');
+ var rows=Array.isArray(window.lines)?window.lines:[];
+ var invalidLine=rows.some(function(l){var q=Number(l.qty),price=Number(l.price);return !Number.isFinite(q)||q<1||Math.floor(q)!==q||!Number.isFinite(price)||price<0});
+ var sub=rows.reduce(function(n,l){return n+Number(l.qty)*Number(l.price)},0);
+ var total=sub-d+c;
+ var bad=!rows.length||!Number.isFinite(sub)||!Number.isFinite(d)||!Number.isFinite(c)||!Number.isFinite(p)||d<0||d>sub||c<0||p<0||total<0||p>total;
+ if(bad||invalidLine){e.preventDefault();e.stopImmediatePropagation();alert('Check invoice amounts: discount must be between ₹0 and subtotal, charges cannot be negative, payment cannot exceed the total, and each quantity and price must be valid.');return}
+ var zeros=rows.filter(function(l){return String(l.name||'').trim()&&Number(l.price)===0});
  if(zeros.length&&!confirm('Warning: '+zeros.length+' invoice line(s) have a ₹0 price. Verify these prices before continuing.')){e.preventDefault();e.stopImmediatePropagation();return}
  audit('Invoice submitted',f.elements.patient.value||'');
 },true);
