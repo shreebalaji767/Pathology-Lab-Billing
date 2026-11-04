@@ -117,7 +117,106 @@ function choosePackage(pid){let p=db.packages.find(x=>x.id===pid);p.testIds.forE
 function invoiceHTML(x){let p=db.profile;return '<div class="labtitle">'+esc(p.name)+'</div><div class="sub">'+esc(p.subtitle)+'</div><div class="sub">'+esc(p.address)+' · '+esc(p.phone)+' · '+esc(p.email)+'</div><div class="sub">'+esc(p.registration)+'</div><hr><div style="display:flex;justify-content:space-between"><b>'+esc(p.invoiceTitle)+'</b><b>'+esc(x.no)+'</b></div><p>Date: '+esc(x.date)+'<br>Patient: <b>'+esc(x.patient)+'</b> · Age/Gender: '+esc(x.age)+' / '+esc(x.gender)+'<br>Mobile: '+esc(x.phone)+'<br>Address: '+esc(x.address)+'<br>Referring doctor: '+esc(x.doctor)+'</p><table><tr><th>#</th><th>Test</th><th>Qty</th><th class="right">Rate</th><th class="right">Amount</th></tr>'+x.items.map((a,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(a.name)+'</td><td>'+a.qty+'</td><td class="right">'+cash(a.price)+'</td><td class="right">'+cash(a.qty*a.price)+'</td></tr>').join('')+'</table><div class="totals"><div><span>Subtotal</span><b>'+cash(x.subtotal)+'</b></div><div><span>Discount</span><b>'+cash(x.discount)+'</b></div><div><span>Other charges</span><b>'+cash(x.charges)+'</b></div><div class="grand"><span>Total</span><span>'+cash(x.total)+'</span></div><div><span>Paid ('+esc(x.method)+')</span><b>'+cash(x.paid)+'</b></div><div><span>Balance due</span><b>'+cash(x.due)+'</b></div></div><p style="text-align:center;margin-top:24px">'+esc(p.footer)+'</p><div style="display:flex;justify-content:space-between;margin-top:35px"><span>Patient signature</span><span>'+esc(p.signatory)+'</span></div><div style="text-align:center;margin-top:14px"><svg id="barcode" data-code="'+esc(x.no)+'"></svg><div style="font-size:10px">'+esc(x.no)+'</div></div>'}
 function viewBill(iid){let x=db.invoices.find(a=>a.id===iid);modal('Invoice '+x.no,'<div class="actions no-print"><button onclick="printBill(\''+iid+'\')">Print / Save PDF</button><button class="alt" onclick="thermal(\''+iid+'\')">Thermal receipt</button><button class="alt" onclick="editBill(\''+iid+'\')">Edit</button><button class="alt" onclick="payment(\''+iid+'\')">Record payment</button><button class="alt" onclick="downloadOne(\''+iid+'\')">Download JSON</button></div><div class="invoice">'+invoiceHTML(x)+'</div>');barcode(document.querySelector('#mbody svg'),x.no)}
 function barcode(svg,value){if(!svg)return;let map={'0':'nnnwwnwnn','1':'wnnwnnnnw','2':'nnwwnnnnw','3':'wnwwnnnnn','4':'nnnwwnnnw','5':'wnnwwnnnn','6':'nnwwwnnnn','7':'nnnwnnwnw','8':'wnnwnnwnn','9':'nnwwnnwnn','A':'wnnnnwnnw','B':'nnwnnwnnw','C':'wnwnnwnnn','D':'nnnnwwnnw','E':'wnnnwwnnn','F':'nnwnwwnnn','G':'nnnnnwwnw','H':'wnnnnwwnn','I':'nnwnnwwnn','J':'nnnnwwwnn','K':'wnnnnnnww','L':'nnwnnnnww','M':'wnwnnnnwn','N':'nnnnwnnww','O':'wnnnwnnwn','P':'nnwnwnnwn','Q':'nnnnnnwww','R':'wnnnnnwwn','S':'nnwnnnwwn','T':'nnnnwnwwn','U':'wwnnnnnnw','V':'nwwnnnnnw','W':'wwwnnnnnn','X':'nwnnwnnnw','Y':'wwnnwnnnn','Z':'nwwnwnnnn','-':'nwnnnnwnw','.':'wwnnnnwnn',' ':'nwwnnnwnn','$':'nwnwnwnnn','/':'nwnwnnnwn','+':'nwnnnwnwn','%':'nnnwnwnwn','*':'nwnnwnwnn'};let s='*'+String(value).toUpperCase().replace(/[^0-9A-Z. $/+%-]/g,'')+'*',x=5,w=2;let html='';for(let c of s){for(let i=0;i<9;i++){let z=map[c]?.[i]==='w'?5:2;if(i%2===0)html+='<rect x="'+x+'" y="0" width="'+z+'" height="38"/>';x+=z}x+=2}svg.setAttribute('viewBox','0 0 '+(x+5)+' 40');svg.setAttribute('width','250');svg.setAttribute('height','40');svg.innerHTML='<g fill="#111">'+html+'</g>'}
-function printBill(iid){let x=db.invoices.find(a=>a.id===iid);if(!x)return;let w=window.open('','_blank');if(!w){alert('Allow pop-ups for this site to print the bill.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(x.no)+'</title><style>body{font:13px Arial;color:#172b36}.invoice{max-width:800px;margin:auto;padding:20px}.labtitle{text-align:center;font-size:22px;font-weight:bold}.sub{text-align:center;color:#555;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:15px}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}.right{text-align:right}.totals{width:300px;margin-left:auto}.totals div{display:flex;justify-content:space-between;padding:5px}.grand{border-top:1px solid #888;font-weight:bold}@media print{.invoice{padding:0}}</style></head><body><div class="invoice">'+invoiceHTML(x)+'</div>\n</body></html>');w.document.close();w.onload=()=>{barcode(w.document.querySelector('svg'),x.no);w.print()}}
+function printBill(iid){let x=db.invoices.find(a=>a.id===iid);if(!x)return;let w=window.open('','_blank');if(!w){alert('Allow pop-ups for this site to print the bill.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(x.no)+'</title><style>body{font:13px Arial;color:#172b36}.invoice{max-width:800px;margin:auto;padding:20px}.labtitle{text-align:center;font-size:22px;font-weight:bold}.sub{text-align:center;color:#555;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:15px}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}.right{text-align:right}.totals{width:300px;margin-left:auto}.totals div{display:flex;justify-content:space-between;padding:5px}.grand{border-top:1px solid #888;font-weight:bold}@media print{.invoice{padding:0}}</style></head><body><div class="invoice">'+invoiceHTML(x)+'</div>\n
+<script>
+(function(){
+'use strict';
+function auditRecord(action,detail){try{var a=JSON.parse(localStorage.getItem('plb_audit_v2')||'[]');a.push({at:new Date().toISOString(),action:action,detail:String(detail||'')});localStorage.setItem('plb_audit_v2',JSON.stringify(a.slice(-1000)))}catch(e){}}
+function activeRows(key){return db[key].filter(function(x){return !x.deletedAt})}
+function safeText(v){return esc(v)}
+function entityTable(key,rows,columns,empty){
+ if(!rows.length)return '<div class="empty">'+empty+'</div>';
+ return '<div class="tablewrap"><table><tr>'+columns.map(function(c){return '<th>'+c[0]+'</th>'}).join('')+'<th>Actions</th></tr>'+rows.map(function(x){
+  var cells=columns.map(function(c){return '<td>'+c[1](x)+'</td>'}).join('');
+  var actions=x.deletedAt
+   ?'<button type="button" class="alt" data-catalog-action="restore" data-kind="'+key+'" data-id="'+safeText(x.id)+'">Restore</button> <button type="button" class="danger" data-catalog-action="permanent" data-kind="'+key+'" data-id="'+safeText(x.id)+'">Permanent delete</button>'
+   :'<button type="button" class="alt" data-catalog-action="edit" data-kind="'+key+'" data-id="'+safeText(x.id)+'">Edit</button> <button type="button" class="alt" data-catalog-action="soft" data-kind="'+key+'" data-id="'+safeText(x.id)+'">Soft delete</button> <button type="button" class="danger" data-catalog-action="permanent" data-kind="'+key+'" data-id="'+safeText(x.id)+'">Permanent delete</button>';
+  return '<tr>'+cells+'<td>'+actions+'</td></tr>';
+ }).join('')+'</table></div>';
+}
+function renderTests(){
+ var deleted=document.getElementById('catalogStatusFilter')?.value==='deleted';
+ var rows=db.tests.filter(function(x){return deleted?!!x.deletedAt:!x.deletedAt});
+ var q=(document.getElementById('tq')?.value||'').toLowerCase();
+ rows=rows.filter(function(x){return (x.name+' '+x.category).toLowerCase().includes(q)});
+ var host=document.getElementById('testlist');if(host)host.innerHTML=entityTable('tests',rows,[['Test',x=>safeText(x.name)],['Category',x=>safeText(x.category)],['Price',x=>cash(x.price)]],'No '+(deleted?'soft-deleted':'active')+' tests.');
+}
+window.testPage=function(){
+ main.innerHTML=head('Test catalogue','Edit, archive, restore or permanently remove test definitions. Existing invoice descriptions remain unchanged.','<button class="alt" onclick="addCommonTests()">＋ Add common test names</button> <button onclick="editTest()">＋ Add test</button>')+
+ '<section class="panel"><div class="toolbar"><input id="tq" placeholder="Search tests"><label for="catalogStatusFilter">Show</label><select id="catalogStatusFilter"><option value="active">Active</option><option value="deleted">Soft deleted</option></select></div><div id="testlist"></div></section>';
+ document.getElementById('tq').oninput=renderTests;document.getElementById('catalogStatusFilter').onchange=renderTests;renderTests();
+};
+var oldEditTest=window.editTest;
+window.editTest=function(tid){var t=tid&&db.tests.find(function(x){return x.id===tid});if(t&&t.deletedAt)return alert('Restore this test before editing it.');return oldEditTest(tid)};
+function renderPackages(){
+ var deleted=document.getElementById('catalogStatusFilter')?.value==='deleted';
+ var q=(document.getElementById('pq')?.value||'').toLowerCase();
+ var rows=db.packages.filter(function(p){return (deleted?!!p.deletedAt:!p.deletedAt)&&p.name.toLowerCase().includes(q)});
+ var host=document.getElementById('packagelist');if(!host)return;
+ host.innerHTML=entityTable('packages',rows,[['Package',x=>'<b>'+safeText(x.name)+'</b>'],['Included tests',x=>(Array.isArray(x.testIds)?x.testIds:[]).map(function(tid){var t=db.tests.find(z=>z.id===tid);return t?safeText(t.name):''}).filter(Boolean).join(', ')||'<span class="muted">No linked tests</span>'],['Package price',x=>cash(x.price)]],'No '+(deleted?'soft-deleted':'active')+' packages.');
+}
+window.packagePage=function(){
+ main.innerHTML=head('Test packages','Edit, archive, restore or permanently remove packages. Invoice descriptions already issued are retained.','<button onclick="editPackage()">＋ Add package</button>')+
+ '<section class="panel"><div class="toolbar"><input id="pq" placeholder="Search packages"><label for="catalogStatusFilter">Show</label><select id="catalogStatusFilter"><option value="active">Active</option><option value="deleted">Soft deleted</option></select></div><div id="packagelist"></div></section>';
+ document.getElementById('pq').oninput=renderPackages;document.getElementById('catalogStatusFilter').onchange=renderPackages;renderPackages();
+};
+var oldEditPackage=window.editPackage;
+window.editPackage=function(pid){
+ var p=pid&&db.packages.find(function(x){return x.id===pid});if(p&&p.deletedAt)return alert('Restore this package before editing it.');
+ var all=db.tests,active=all.filter(function(t){return !t.deletedAt});db.tests=active;
+ try{return oldEditPackage(pid)}finally{db.tests=all}
+};
+function renderDoctors(){
+ var deleted=document.getElementById('catalogStatusFilter')?.value==='deleted';
+ var rows=db.doctors.filter(function(x){return deleted?!!x.deletedAt:!x.deletedAt});
+ var host=document.getElementById('doctorlist');if(host)host.innerHTML=entityTable('doctors',rows,[['Doctor',x=>safeText(x.name)],['Clinic / hospital',x=>safeText(x.clinic)],['Phone',x=>safeText(x.phone)]],'No '+(deleted?'soft-deleted':'active')+' doctors.');
+}
+window.doctorPage=function(){
+ main.innerHTML=head('Doctors','Manage referring doctor records. Historical invoice doctor names are retained as issued.','<button onclick="editDoctor()">＋ Add doctor</button>')+
+ '<section class="panel"><div class="toolbar"><label for="catalogStatusFilter">Show</label><select id="catalogStatusFilter"><option value="active">Active doctors</option><option value="deleted">Soft-deleted doctors</option></select></div><div id="doctorlist"></div></section>';
+ document.getElementById('catalogStatusFilter').onchange=renderDoctors;renderDoctors();
+};
+var oldEditDoctor=window.editDoctor;
+window.editDoctor=function(did){var d=did&&db.doctors.find(function(x){return x.id===did});if(d&&d.deletedAt)return alert('Restore this doctor before editing it.');return oldEditDoctor(did)};
+function permanentDelete(kind,x){
+ var label={tests:'test',packages:'package',doctors:'doctor'}[kind];
+ if(!confirm('PERMANENTLY DELETE '+(x.name||label)+'? This cannot be undone. '+(kind==='tests'?'Its saved catalogue entry will be removed; historical invoice item descriptions and prices remain.':kind==='packages'?'Its package definition will be removed; historical invoice descriptions remain.':'The doctor directory entry will be removed; doctor names already printed on invoices remain.')+' Export a backup first if needed.'))return;
+ if(kind==='tests'){
+  db.tests=db.tests.filter(function(v){return v.id!==x.id});
+  // Keep test IDs on existing packages so restoring/importing history does not rewrite it.
+ }else db[kind]=db[kind].filter(function(v){return v.id!==x.id});
+ if(save()===false)return;auditRecord(kind.slice(0,-1)+' permanently deleted',x.name||x.id);render();
+}
+document.addEventListener('click',function(e){
+ var b=e.target.closest('[data-catalog-action]');if(!b)return;
+ var kind=b.dataset.kind,id=b.dataset.id,action=b.dataset.catalogAction;
+ if(!['tests','packages','doctors'].includes(kind))return;
+ var x=db[kind].find(function(v){return v.id===id});if(!x)return;
+ if(action==='edit'){if(kind==='tests')editTest(id);else if(kind==='packages')editPackage(id);else editDoctor(id);return}
+ if(action==='soft'){
+  if(!confirm('Move '+(x.name||'this record')+' to Soft deleted? It can be restored later.'))return;
+  x.deletedAt=new Date().toISOString();if(save()===false){delete x.deletedAt;return}
+  auditRecord(kind.slice(0,-1)+' soft-deleted',x.name||x.id);render();return;
+ }
+ if(action==='restore'){
+  if(!confirm('Restore '+(x.name||'this record')+' to the active list?'))return;
+  var stamp=x.deletedAt;delete x.deletedAt;if(save()===false){x.deletedAt=stamp;return}
+  auditRecord(kind.slice(0,-1)+' restored',x.name||x.id);render();return;
+ }
+ if(action==='permanent')permanentDelete(kind,x);
+},true);
+// Never offer archived catalogue entries for new bills.
+var oldBillForm=window.billForm;
+window.billForm=function(old){
+ var allTests=db.tests,allPackages=db.packages,allDoctors=db.doctors;
+ db.tests=allTests.filter(function(x){return !x.deletedAt});
+ db.packages=allPackages.filter(function(x){return !x.deletedAt});
+ db.doctors=allDoctors.filter(function(x){return !x.deletedAt});
+ try{return oldBillForm(old)}finally{db.tests=allTests;db.packages=allPackages;db.doctors=allDoctors}
+};
+})();
+</script>
+</body></html>');w.document.close();w.onload=()=>{barcode(w.document.querySelector('svg'),x.no);w.print()}}
 (function(){
   window.tableBills=function(a){
     if(!a.length)return '<div class="empty">No records found.</div>';
