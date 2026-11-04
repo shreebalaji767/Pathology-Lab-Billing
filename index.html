@@ -191,10 +191,11 @@ if(typeof originalCancel==='function')window.cancelInvoice=function(id){
 };
 window.deleteInvoice=function(id){
  var x=db.invoices.find(function(v){return v.id===id});if(!x)return;
- if(!confirm('Archive invoice '+x.no+'? It will remain in your records with its payment history.'))return;
- var reason=prompt('Reason for archiving this invoice:');if(!reason||!reason.trim())return;
- x.status='cancelled';x.cancelReason=reason.trim();x.cancelledAt=new Date().toISOString();
- if(window.save()!==false){audit('Invoice archived',x.no+' · '+reason.trim());render()}
+ if(!confirm('Permanently delete invoice '+x.no+'? This immediately removes the invoice and its payment history from this browser. This action cannot be undone.'))return;
+ db.invoices=db.invoices.filter(function(v){return v.id!==id});
+ save();
+ audit('Invoice permanently deleted',x.no);
+ render();
 };
 window.exportBillingAudit=function(){download('pathology-billing-audit.json',localStorage.getItem(AUDIT_KEY)||'[]')};
 window.exportBillingInvoices=function(){download('pathology-invoices.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),invoices:db.invoices},null,2))};
