@@ -194,3 +194,108 @@ test('permanently deletes patient details and anonymizes linked invoices', async
   await expect(page.locator('#mbody')).toContainText('Deleted patient');
   await expect(page.locator('#mbody')).not.toContainText('9876543210');
 });
+
+
+test('doctors support edit, soft delete, restore and permanent delete', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Doctors', exact: true }).click();
+  await page.getByRole('button', { name: /add doctor/i }).click();
+  await page.locator('#ef input[name="name"]').fill('Dr. Example');
+  await page.locator('#ef input[name="clinic"]').fill('City Clinic');
+  await page.locator('#ef input[name="phone"]').fill('9000000001');
+  await page.getByRole('button', { name: 'Save doctor' }).click();
+  await expect(page.locator('#doctorlist')).toContainText('Dr. Example');
+  await page.locator('#doctorlist [data-catalog-action="edit"]').click();
+  await page.locator('#ef input[name="clinic"]').fill('Updated Clinic');
+  await page.getByRole('button', { name: 'Save doctor' }).click();
+  await expect(page.locator('#doctorlist')).toContainText('Updated Clinic');
+  page.once('dialog', d => d.accept());
+  await page.locator('#doctorlist [data-catalog-action="soft"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('deleted');
+  await expect(page.locator('#doctorlist')).toContainText('Dr. Example');
+  page.once('dialog', d => d.accept());
+  await page.locator('#doctorlist [data-catalog-action="restore"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('active');
+  await expect(page.locator('#doctorlist')).toContainText('Dr. Example');
+  page.once('dialog', d => d.accept());
+  await page.locator('#doctorlist [data-catalog-action="permanent"]').click();
+  await expect(page.locator('#doctorlist')).not.toContainText('Dr. Example');
+});
+
+test('tests support edit, soft delete, restore and permanent delete', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
+  await page.getByRole('button', { name: 'Add test', exact: true }).click();
+  await page.locator('#ef input[name="name"]').fill('Custom CBC');
+  await page.locator('#ef input[name="category"]').fill('Haematology');
+  await page.locator('#ef input[name="price"]').fill('450');
+  await page.getByRole('button', { name: 'Save test' }).click();
+  await expect(page.locator('#testlist')).toContainText('Custom CBC');
+  await page.locator('#testlist [data-catalog-action="edit"]').click();
+  await page.locator('#ef input[name="price"]').fill('500');
+  await page.getByRole('button', { name: 'Save test' }).click();
+  await expect(page.locator('#testlist')).toContainText('₹500.00');
+  page.once('dialog', d => d.accept());
+  await page.locator('#testlist [data-catalog-action="soft"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('deleted');
+  await expect(page.locator('#testlist')).toContainText('Custom CBC');
+  page.once('dialog', d => d.accept());
+  await page.locator('#testlist [data-catalog-action="restore"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('active');
+  await expect(page.locator('#testlist')).toContainText('Custom CBC');
+  page.once('dialog', d => d.accept());
+  await page.locator('#testlist [data-catalog-action="permanent"]').click();
+  await expect(page.locator('#testlist')).not.toContainText('Custom CBC');
+});
+
+test('packages support edit, soft delete, restore and permanent delete', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
+  await page.getByRole('button', { name: 'Add test', exact: true }).click();
+  await page.locator('#ef input[name="name"]').fill('Package Test');
+  await page.locator('#ef input[name="category"]').fill('General');
+  await page.locator('#ef input[name="price"]').fill('100');
+  await page.getByRole('button', { name: 'Save test' }).click();
+  await page.getByRole('button', { name: 'Test packages', exact: true }).click();
+  await page.getByRole('button', { name: 'Add package', exact: true }).click();
+  await page.locator('#ef input[name="name"]').fill('Basic Health Package');
+  await page.locator('#ef input[name="price"]').fill('350');
+  await page.locator('#ef input[name="tests"]').check();
+  await page.getByRole('button', { name: 'Save package' }).click();
+  await expect(page.locator('#packagelist')).toContainText('Basic Health Package');
+  await page.locator('#packagelist [data-catalog-action="edit"]').click();
+  await page.locator('#ef input[name="price"]').fill('400');
+  await page.getByRole('button', { name: 'Save package' }).click();
+  await expect(page.locator('#packagelist')).toContainText('₹400.00');
+  page.once('dialog', d => d.accept());
+  await page.locator('#packagelist [data-catalog-action="soft"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('deleted');
+  await expect(page.locator('#packagelist')).toContainText('Basic Health Package');
+  page.once('dialog', d => d.accept());
+  await page.locator('#packagelist [data-catalog-action="restore"]').click();
+  await page.locator('#catalogStatusFilter').selectOption('active');
+  await expect(page.locator('#packagelist')).toContainText('Basic Health Package');
+  page.once('dialog', d => d.accept());
+  await page.locator('#packagelist [data-catalog-action="permanent"]').click();
+  await expect(page.locator('#packagelist')).not.toContainText('Basic Health Package');
+});
+
+test('invoices support soft delete, restore and permanent delete', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Invoice Lifecycle Test');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Invoices', exact: true }).click();
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Soft delete' }).click();
+  await expect(page.locator('#billlist')).not.toContainText('Invoice Lifecycle Test');
+  await page.locator('#status').selectOption('deleted');
+  await expect(page.locator('#billlist')).toContainText('Invoice Lifecycle Test');
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Restore' }).click();
+  await page.locator('#status').selectOption('');
+  await expect(page.locator('#billlist')).toContainText('Invoice Lifecycle Test');
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Permanent delete' }).click();
+  await expect(page.locator('#billlist')).not.toContainText('Invoice Lifecycle Test');
+});
