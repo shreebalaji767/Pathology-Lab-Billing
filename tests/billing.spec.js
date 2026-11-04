@@ -159,3 +159,39 @@ test('responsive layout fits phone, tablet, laptop and desktop viewports', async
     expect(metrics.main).toBeGreaterThan(0);
   }
 });
+
+
+test('soft-deletes a patient and allows restoring the patient record', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Soft Delete Patient');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Patients', exact: true }).click();
+  await expect(page.locator('#patientRecords')).toContainText('Soft Delete Patient');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Soft delete' }).click();
+  await expect(page.locator('#patientRecords')).not.toContainText('Soft Delete Patient');
+  await page.locator('#patientStatusFilter').selectOption('deleted');
+  await expect(page.locator('#patientRecords')).toContainText('Soft Delete Patient');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Restore' }).click();
+  await page.locator('#patientStatusFilter').selectOption('active');
+  await expect(page.locator('#patientRecords')).toContainText('Soft Delete Patient');
+});
+
+test('permanently deletes patient details and anonymizes linked invoices', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Permanent Delete Patient');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Patients', exact: true }).click();
+  page.once('dialog', dialog => dialog.accept());
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Permanently delete' }).click();
+  await expect(page.locator('#patientRecords')).not.toContainText('Permanent Delete Patient');
+  await page.getByRole('button', { name: 'Invoices', exact: true }).click();
+  await expect(page.locator('#billlist')).toContainText('Deleted patient');
+  await page.getByRole('button', { name: 'Open' }).click();
+  await expect(page.locator('#mbody')).toContainText('Deleted patient');
+  await expect(page.locator('#mbody')).not.toContainText('9876543210');
+});
