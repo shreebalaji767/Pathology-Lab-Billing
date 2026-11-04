@@ -186,7 +186,6 @@ test('permanently deletes patient details and anonymizes linked invoices', async
   await page.getByRole('button', { name: 'Close' }).click();
   await page.getByRole('button', { name: 'Patients', exact: true }).click();
   page.once('dialog', dialog => dialog.accept());
-  page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Permanently delete' }).click();
   await expect(page.locator('#patientRecords')).not.toContainText('Permanent Delete Patient');
   await page.getByRole('button', { name: 'Invoices', exact: true }).click();
