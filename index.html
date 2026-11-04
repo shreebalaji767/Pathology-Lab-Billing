@@ -150,7 +150,10 @@ function printBill(iid){let x=db.invoices.find(a=>a.id===iid);if(!x)return;let w
   document.addEventListener('click',function(e){
     var b=e.target.closest('[data-invoice-action]');if(!b)return;
     var id=b.dataset.invoiceId,action=b.dataset.invoiceAction;
-    if(action==='soft-delete'){e.preventDefault();softDeleteInvoice(id)}
+    if(action==='open'){e.preventDefault();viewBill(id)}
+    else if(action==='edit'){e.preventDefault();editBill(id)}
+    else if(action==='print'){e.preventDefault();printBill(id)}
+    else if(action==='soft-delete'){e.preventDefault();softDeleteInvoice(id)}
     else if(action==='permanent-delete'){e.preventDefault();permanentlyDeleteInvoice(id)}
     else if(action==='restore'){e.preventDefault();restoreDeletedInvoice(id)}
   },true);
