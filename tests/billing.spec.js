@@ -78,7 +78,7 @@ test('exports and restores a JSON backup', async ({ page }) => {
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#restore').setInputFiles(filePath);
   await expect(page.locator('#main')).toContainText('Backup & restore');
-  await page.getByRole('button', { name: 'Invoices' }).click();
+  await page.getByRole('button', { name: 'Invoices', exact: true }).click();
   await expect(page.locator('#billlist')).toContainText('Backup Test');
 });
 
