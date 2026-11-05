@@ -180,6 +180,7 @@ window.doctorPage=function(){
 var oldEditDoctor=window.editDoctor;
 window.editDoctor=function(did){var d=did&&db.doctors.find(function(x){return x.id===did});if(d&&d.deletedAt)return alert('Restore this doctor before editing it.');return oldEditDoctor(did)};
 function permanentDelete(kind,x){
+ if(!x||!x.deletedAt){alert('Soft-delete this record first. Permanent deletion is available only from the Recycle Bin.');return}
  var label={tests:'test',packages:'package',doctors:'doctor'}[kind];
  if(!confirm('PERMANENTLY DELETE '+(x.name||label)+'? This cannot be undone. '+(kind==='tests'?'Its saved catalogue entry will be removed; historical invoice item descriptions and prices remain.':kind==='packages'?'Its package definition will be removed; historical invoice descriptions remain.':'The doctor directory entry will be removed; doctor names already printed on invoices remain.')+' Export a backup first if needed.'))return;
  if(kind==='tests'){
@@ -420,7 +421,7 @@ window.patientPage=function(){
   var count=db.invoices.filter(function(i){return i.patientId===p.id}).length;
   var actions=mode==='deleted'
    ?'<button class="alt" data-patient-action="restore" data-patient-id="'+esc(p.id)+'">Restore</button> <button class="danger" data-patient-action="permanent" data-patient-id="'+esc(p.id)+'">Permanently delete</button>'
-   :'<button class="alt" onclick="history(\''+String(p.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">History</button> <button class="alt" onclick="editPatient(\''+String(p.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">Edit</button> <button class="alt" data-patient-action="soft" data-patient-id="'+esc(p.id)+'">Soft delete</button> <button class="danger" data-patient-action="permanent" data-patient-id="'+esc(p.id)+'">Permanently delete</button>';
+   :'<button class="alt" onclick="history(\''+String(p.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">History</button> <button class="alt" onclick="editPatient(\''+String(p.id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">Edit</button> <button class="alt" data-patient-action="soft" data-patient-id="'+esc(p.id)+'">Soft delete</button>';
   return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.age)+' / '+esc(p.gender)+'</td><td>'+esc(p.phone)+'</td><td>'+count+'</td><td>'+actions+'</td></tr>';
  }).join('')+'</table></div>':'<div class="empty">'+(mode==='deleted'?'No soft-deleted patients.':'No active patients yet. Patients are also added during billing.')+'</div>';
  main.innerHTML=head('Patients','Manage patient records. Soft delete can be restored; permanent deletion removes personal details from linked invoices.','<button onclick="editPatient()">＋ Add patient</button>')+'<section class="panel"><div class="toolbar"><label for="patientStatusFilter">Show patients</label><select id="patientStatusFilter"><option value="active" '+(mode==='active'?'selected':'')+'>Active patients</option><option value="deleted" '+(mode==='deleted'?'selected':'')+'>Soft-deleted patients</option></select></div><div id="patientRecords">'+html+'</div></section>';
@@ -441,6 +442,7 @@ document.addEventListener('click',function(e){
   if(window.save()===false){db=previous;return}
   try{var a=JSON.parse(localStorage.getItem('plb_audit_v2')||'[]');a.push({at:new Date().toISOString(),action:'Patient restored',detail:p.name+' · '+p.id});localStorage.setItem('plb_audit_v2',JSON.stringify(a.slice(-1000)))}catch(_){}
  }else if(action==='permanent'){
+  if(!p.deletedAt){alert('Soft-delete this patient first. Permanent deletion is available only from the Soft-deleted patients list.');return}
   var linked=db.invoices.filter(function(i){return i.patientId===p.id||(!i.patientId&&i.patient===p.name&&String(i.phone||'')===String(p.phone||''))});
   if(!confirm('PERMANENTLY DELETE '+p.name+'? This removes the patient directory record and anonymizes personal details (name, age, gender, phone and address) on '+linked.length+' linked invoice(s). Invoice totals, test details and payment history remain. This cannot be undone. Export a backup first if needed.'))return;
   linked.forEach(function(i){i.patient='Deleted patient';i.age='';i.gender='';i.phone='';i.address='';i.patientId=null;i.patientDeleted=true});
@@ -658,6 +660,7 @@ document.addEventListener('click',function(e){
   delete x.deletedAt;if(kind==='invoices'&&x.status==='deleted'){x.status=x.statusBeforeSoftDelete||((Number(x.due)>0)?'due':'paid');delete x.statusBeforeSoftDelete;}
   if(!commitLife(previous,kind.slice(0,-1)+' restored',x.no||x.name||id))return;
  }else if(action==='permanent'){
+  if(!x.deletedAt&&!(kind==='invoices'&&x.status==='deleted')){alert('Soft-delete this record first. Permanent deletion is available only from the Recycle Bin.');return}
   var message='PERMANENTLY DELETE this '+kind.slice(0,-1)+'? This cannot be undone. Export a backup first.';
   if(kind==='patients'){
    var linked=db.invoices.filter(function(i){return i.patientId===x.id||(!i.patientId&&i.patient===x.name&&String(i.phone||'')===String(x.phone||''))});
