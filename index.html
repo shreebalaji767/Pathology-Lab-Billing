@@ -723,5 +723,6 @@ var oldEditPackageLife=window.editPackage;
 window.editPackage=function(id){var x=id&&db.packages.find(function(v){return v.id===id});if(x&&x.deletedAt)return alert('Restore this package before editing.');return oldEditPackageLife(id)};
 var oldEditDoctorLife=window.editDoctor;
 window.editDoctor=function(id){var x=id&&db.doctors.find(function(v){return v.id===id});if(x&&x.deletedAt)return alert('Restore this doctor before editing.');return oldEditDoctorLife(id)};
+updateRecycleCount();
 })();
 </script></body></html>
