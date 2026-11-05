@@ -329,7 +329,7 @@ test('tests support edit, soft delete, restore and permanent delete', async ({ p
 test('packages support edit, soft delete, restore and permanent delete', async ({ page }) => {
   await goToApp(page);
   await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
-  await page.getByRole('button', { name: 'Add test', exact: true }).click();
+  await page.getByRole('button', { name: /Add test/ }).click();
   await page.locator('#ef input[name="name"]').fill('Package Test');
   await page.locator('#ef input[name="category"]').fill('General');
   await page.locator('#ef input[name="price"]').fill('100');
