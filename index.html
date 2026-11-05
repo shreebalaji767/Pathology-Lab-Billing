@@ -584,7 +584,7 @@ function escId(v){return esc(String(v==null?'':v))}
 function actions(kind,x,deleted){
  var id=escId(x.id);
  if(deleted)return '<button type="button" class="alt" data-lifecycle-action="restore" data-kind="'+kind+'" data-id="'+id+'">Restore</button> <button type="button" class="danger" data-lifecycle-action="permanent" data-kind="'+kind+'" data-id="'+id+'">Permanent delete</button>';
- return '<button type="button" class="alt" data-lifecycle-action="edit" data-kind="'+kind+'" data-id="'+id+'">Edit</button> <button type="button" class="alt" data-lifecycle-action="soft" data-kind="'+kind+'" data-id="'+id+'">Soft delete</button> <button type="button" class="danger" data-lifecycle-action="permanent" data-kind="'+kind+'" data-id="'+id+'">Permanent delete</button>';
+ return '<button type="button" class="alt" data-lifecycle-action="edit" data-kind="'+kind+'" data-id="'+id+'">Edit</button> <button type="button" class="alt" data-lifecycle-action="soft" data-kind="'+kind+'" data-id="'+id+'">Soft delete</button>';
 }
 function statusBar(kind,mode){return '<div class="toolbar"><label for="lifeFilter">Show</label><select id="lifeFilter"><option value="active" '+(mode==='active'?'selected':'')+'>Active records</option><option value="deleted" '+(mode==='deleted'?'selected':'')+'>Soft-deleted records</option></select></div>'}
 function rowsFor(kind,mode){return db[kind].filter(function(x){return mode==='deleted'?!!x.deletedAt:!x.deletedAt})}
@@ -625,7 +625,7 @@ function renderInvoices(){
  var html=rows.map(function(x){
   var deleted=x.status==='deleted'||!!x.deletedAt;
   var status=deleted?'Soft deleted':x.status==='cancelled'?'Cancelled':x.due>0?'Pending':'Paid';
-  var buttons=deleted?'<button class="alt" data-lifecycle-action="restore" data-kind="invoices" data-id="'+escId(x.id)+'">Restore</button> <button class="danger" data-lifecycle-action="permanent" data-kind="invoices" data-id="'+escId(x.id)+'">Permanent delete</button>':'<button class="alt" data-lifecycle-action="open" data-kind="invoices" data-id="'+escId(x.id)+'">Open</button> <button class="alt" data-lifecycle-action="edit" data-kind="invoices" data-id="'+escId(x.id)+'">Edit</button> <button class="alt" data-lifecycle-action="print" data-kind="invoices" data-id="'+escId(x.id)+'">Print</button> <button class="alt" data-lifecycle-action="soft" data-kind="invoices" data-id="'+escId(x.id)+'">Soft delete</button> <button class="danger" data-lifecycle-action="permanent" data-kind="invoices" data-id="'+escId(x.id)+'">Permanent delete</button>';
+  var buttons=deleted?'<button class="alt" data-lifecycle-action="restore" data-kind="invoices" data-id="'+escId(x.id)+'">Restore</button> <button class="danger" data-lifecycle-action="permanent" data-kind="invoices" data-id="'+escId(x.id)+'">Permanent delete</button>':'<button class="alt" data-lifecycle-action="open" data-kind="invoices" data-id="'+escId(x.id)+'">Open</button> <button class="alt" data-lifecycle-action="edit" data-kind="invoices" data-id="'+escId(x.id)+'">Edit</button> <button class="alt" data-lifecycle-action="print" data-kind="invoices" data-id="'+escId(x.id)+'">Print</button> <button class="alt" data-lifecycle-action="soft" data-kind="invoices" data-id="'+escId(x.id)+'">Soft delete</button>';
   return '<tr><td>'+esc(x.no)+'</td><td>'+esc(x.date)+'</td><td>'+esc(x.patient)+'</td><td>'+cash(x.total)+'</td><td>'+cash(x.paid)+'</td><td>'+cash(x.due)+'</td><td>'+esc(status)+'</td><td class="invoice-actions">'+buttons+'</td></tr>';
  }).join('');
  var host=byId('billlist');if(host)host.innerHTML=rows.length?'<div class="tablewrap"><table><tr><th>Invoice</th><th>Date</th><th>Patient</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th>Actions</th></tr>'+html+'</table></div>':'<div class="empty">No '+(mode==='deleted'?'soft-deleted':'active')+' invoices found.</div>';
@@ -650,12 +650,12 @@ document.addEventListener('click',function(e){
  if(action==='soft'){
   if(x.deletedAt||(kind==='invoices'&&x.status==='deleted'))return;
   if(!confirm('Move this '+(kind==='invoices'?'invoice':kind==='patients'?'patient':kind==='tests'?'test':kind==='packages'?'package':'doctor')+' to Soft deleted? It will be retained and can be restored.'))return;
-  x.deletedAt=new Date().toISOString();if(kind==='invoices')x.status='deleted';
+  x.deletedAt=new Date().toISOString();if(kind==='invoices'){x.statusBeforeSoftDelete=x.status||((Number(x.due)>0)?'due':'paid');x.status='deleted';}
   if(!commitLife(previous,kind.slice(0,-1)+' soft-deleted',x.no||x.name||id))return;
  }else if(action==='restore'){
   if(!x.deletedAt&&!(kind==='invoices'&&x.status==='deleted'))return;
   if(!confirm('Restore this record to the active list?'))return;
-  delete x.deletedAt;if(kind==='invoices'&&x.status==='deleted')x.status='active';
+  delete x.deletedAt;if(kind==='invoices'&&x.status==='deleted'){x.status=x.statusBeforeSoftDelete||((Number(x.due)>0)?'due':'paid');delete x.statusBeforeSoftDelete;}
   if(!commitLife(previous,kind.slice(0,-1)+' restored',x.no||x.name||id))return;
  }else if(action==='permanent'){
   var message='PERMANENTLY DELETE this '+kind.slice(0,-1)+'? This cannot be undone. Export a backup first.';
