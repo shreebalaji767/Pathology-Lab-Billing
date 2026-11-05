@@ -114,7 +114,7 @@ test('exports and restores a JSON backup', async ({ page }) => {
   const filePath = await download.path();
   expect(filePath).toBeTruthy();
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await reloadApp(page);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#restore').setInputFiles(filePath);
@@ -124,13 +124,13 @@ test('exports and restores a JSON backup', async ({ page }) => {
 });
 
 test('saves editable laboratory branding and preserves it after reload', async ({ page }) => {
-  await page.goto('/');
+  await goToApp(page);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.locator('#pf input[name="brandTitle"]').fill('CITY DIAGNOSTIC CENTRE');
   await page.locator('#pf input[name="brandSubtitle"]').fill('Accurate Reports, Trusted Care');
   await page.getByRole('button', { name: 'Save settings' }).click();
   await expect(page.locator('#brand')).toHaveText('CITY DIAGNOSTIC CENTRE');
-  await page.reload();
+  await reloadApp(page);
   await expect(page.locator('#brand')).toHaveText('CITY DIAGNOSTIC CENTRE');
   await expect(page.locator('#brandSubtitle')).toHaveText('Accurate Reports, Trusted Care');
 });
@@ -185,7 +185,7 @@ test('shows a transparent favicon and prints a bill directly from the invoice li
 
 
 test('responsive layout fits phone, tablet, laptop and desktop viewports', async ({ page }) => {
-  await page.goto('/');
+  await goToApp(page);
   for (const width of [320, 360, 390, 430, 768, 1024, 1366, 1920]) {
     await page.setViewportSize({ width, height: 800 });
     await expect(page.locator('.layout')).toBeVisible();
@@ -238,7 +238,7 @@ test('permanently deletes patient details and anonymizes linked invoices', async
 
 
 test('doctors support edit, soft delete, restore and permanent delete', async ({ page }) => {
-  await page.goto('/');
+  await goToApp(page);
   await page.getByRole('button', { name: 'Doctors', exact: true }).click();
   await page.getByRole('button', { name: /add doctor/i }).click();
   await page.locator('#ef input[name="name"]').fill('Dr. Example');
@@ -264,7 +264,7 @@ test('doctors support edit, soft delete, restore and permanent delete', async ({
 });
 
 test('tests support edit, soft delete, restore and permanent delete', async ({ page }) => {
-  await page.goto('/');
+  await goToApp(page);
   await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
   await page.getByRole('button', { name: 'Add test', exact: true }).click();
   await page.locator('#ef input[name="name"]').fill('Custom CBC');
@@ -290,7 +290,7 @@ test('tests support edit, soft delete, restore and permanent delete', async ({ p
 });
 
 test('packages support edit, soft delete, restore and permanent delete', async ({ page }) => {
-  await page.goto('/');
+  await goToApp(page);
   await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
   await page.getByRole('button', { name: 'Add test', exact: true }).click();
   await page.locator('#ef input[name="name"]').fill('Package Test');
