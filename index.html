@@ -243,6 +243,7 @@ window.billForm=function(old){
   };
   window.permanentlyDeleteInvoice=function(id){
     var x=db.invoices.find(function(v){return v.id===id});if(!x)return;
+    if(!x.deletedAt&&x.status!=='deleted'){alert('Soft-delete this invoice first. Permanent deletion is available only from the Soft-deleted invoices list.');return}
     if(!confirm('PERMANENTLY DELETE invoice '+x.no+'? This erases the invoice and all its payment history from this browser. This cannot be undone.'))return;
     db.invoices=db.invoices.filter(function(v){return v.id!==id});save();render();
   };
