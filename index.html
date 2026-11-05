@@ -80,6 +80,51 @@ th,td{overflow-wrap:anywhere}
  .top{padding-block:8px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Final viewport containment: prevent intrinsic-width children from widening the page */
+html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+body>*{max-width:100%}
+.layout,aside,main,#main,.head,.panel,.stats,.stat,.toolbar,.actions,.form,.settings,.modal,.modalbox{min-width:0;max-width:100%}
+.layout{width:100%;grid-template-columns:minmax(0,clamp(180px,18vw,250px)) minmax(0,1fr)}
+.nav{width:100%;min-width:0!important;max-width:100%;box-sizing:border-box}
+.nav button{max-width:100%;min-width:0}
+.top,.head,.toolbar,.actions{flex-wrap:wrap}
+.top>*,.head>*,.toolbar>*,.actions>*{min-width:0;max-width:100%}
+.tablewrap{display:block;width:100%;min-width:0;max-width:100%;overflow-x:auto;contain:inline-size}
+.tablewrap table{width:max-content;min-width:570px;max-width:none}
+.invoice,.invoice>*,.invoice table{min-width:0;max-width:100%}
+.invoice{width:100%;overflow-wrap:anywhere}
+.line{width:100%;min-width:0;grid-template-columns:minmax(0,1fr) minmax(48px,70px) minmax(48px,65px) 32px}
+.line>*{min-width:0;max-width:100%}
+img,svg,video,canvas,iframe{max-width:100%}
+@media(max-width:1050px){
+ .layout{grid-template-columns:minmax(0,1fr)}
+ aside{width:100%;min-width:0;max-width:100%;overflow-x:auto}
+ .nav{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ .nav button{flex:0 0 auto;white-space:nowrap}
+}
+@media(max-width:700px){
+ .top{width:100%;gap:8px}
+ .top .actions{width:100%;display:flex;flex-wrap:wrap}
+ .top .actions button{flex:1 1 auto}
+ .head{display:flex;flex-direction:column;align-items:stretch}
+ .head .actions{width:100%;display:flex;flex-wrap:wrap}
+ .head .actions button{flex:1 1 auto}
+ .toolbar{display:flex;flex-wrap:wrap}
+ .toolbar input,.toolbar select{flex:1 1 140px;width:auto;max-width:100%}
+ .panel{padding:clamp(9px,2.5vw,14px)}
+ .modal{width:100%;max-width:100%;overflow-y:auto;overflow-x:hidden}
+ .modalbox{width:100%;max-width:100%;box-sizing:border-box}
+ .line{grid-template-columns:minmax(0,1fr) minmax(48px,64px) minmax(48px,60px) 30px}
+}
+@media(max-width:360px){
+ main{padding:8px}
+ .panel{padding:8px}
+ .top{padding:9px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .line{grid-template-columns:minmax(0,1fr) 48px 48px 28px;gap:4px}
+ .line input{padding:6px 3px;font-size:12px}
+}
 </style></head><body>
 <header class="top"><div><h1 id="brand">YOUR PATHOLOGY LAB</h1><small id="brandSubtitle">Local laboratory billing & management</small></div><div class="actions"><button class="alt" onclick="go('settings')">Settings</button><button class="alt" onclick="newBill()">＋ New invoice</button></div></header>
 <div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="recycle">♻ Recycle Bin <span id="recycleCount" class="pill" style="margin-left:5px">0</span></button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
