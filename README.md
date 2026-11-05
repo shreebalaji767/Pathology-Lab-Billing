@@ -94,14 +94,17 @@ The repository also contains a GitHub Actions workflow for browser tests. Check 
 
 ## Data storage, backups and privacy
 
-- Application records are stored in the browser's **localStorage** on the device and browser where the app is used.
+- The app encrypts its application-owned browser storage using the browser's built-in **Web Crypto API: AES-256-GCM**, with a key derived from your password using **PBKDF2-SHA-256 (310,000 iterations)**.
+- On first use, create an encryption password of at least 10 characters. On later visits, enter it to unlock and decrypt the data. The password and encryption key are not saved in localStorage or sent to a server.
+- Use the same browser profile and password to access the data. The app requires a secure browser context (GitHub Pages HTTPS or localhost).
+- Existing supported plaintext app records are migrated into the encrypted store on first password setup. Unrelated localStorage keys belonging to other apps on the same origin are not included in this migration.
+- **There is no password recovery.** If you forget the encryption password, the encrypted local data cannot be decrypted. Keep a separate backup before changing devices or browser profiles.
+- Downloaded JSON backups and CSV exports are **not encrypted by this feature**. Treat exported files as sensitive and protect them separately.
 - There is no hosted application database, cloud synchronization or automatic transfer of records between devices.
 - Clearing browser data, using a different browser/profile, or losing access to the device can make locally stored records unavailable.
-- Export JSON backups regularly and store backup copies securely in a separate location.
 - Test the restore process with a backup copy before relying on it.
-- CSV exports are useful for supported tabular records; use a full JSON backup for application-data portability.
 
-**Patient and financial records are sensitive.** Restrict access to the device and browser profile, use device-level security, and protect exported backups. Do not place real patient data in public issues, screenshots, test fixtures or source-control commits.
+**Encryption protects stored data at rest, not an already-unlocked session.** While the app is unlocked, records are available to the running page; someone with access to the unlocked browser, device, browser developer tools or malware may be able to read them. Use a strong unique password, lock the app when leaving the device, and secure the device itself. Do not place real patient data in public issues, screenshots, test fixtures or source-control commits.
 
 ## Testing
 
