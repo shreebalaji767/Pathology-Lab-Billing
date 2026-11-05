@@ -82,14 +82,14 @@ th,td{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style></head><body>
 <header class="top"><div><h1 id="brand">YOUR PATHOLOGY LAB</h1><small id="brandSubtitle">Local laboratory billing & management</small></div><div class="actions"><button class="alt" onclick="go('settings')">Settings</button><button class="alt" onclick="newBill()">＋ New invoice</button></div></header>
-<div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
+<div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="recycle">♻ Recycle Bin <span id="recycleCount" class="pill" style="margin-left:5px">0</span></button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
 <div class="modal hidden" id="modal"><div class="modalbox"><div class="modalhead"><h3 id="mtitle"></h3><button class="alt" onclick="closeM()">Close</button></div><div id="mbody"></div></div></div>
 <script>
 const KEY='pathologyLabBilling_v1',blank={profile:{name:'YOUR PATHOLOGY LAB',subtitle:'DIAGNOSTIC & CLINICAL LABORATORY',address:'',phone:'',whatsapp:'',email:'',registration:'',footer:'Thank you for choosing our laboratory.',signatory:'Authorized Signatory',invoiceTitle:'PATIENT INVOICE',prefix:'INV',next:1,currency:'₹'},tests:[],packages:[],patients:[],doctors:[],invoices:[]};
 let db=read(),page='dashboard',lines=[];function applyBrand(){let p=db.profile;document.getElementById('brand').textContent=p.brandTitle||p.name||'YOUR PATHOLOGY LAB';document.getElementById('brandSubtitle').textContent=p.brandSubtitle||p.subtitle||'Local laboratory billing & management'}applyBrand();
 function read(){try{return Object.assign(structuredClone(blank),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{return structuredClone(blank)}}function save(){try{localStorage.setItem(KEY,JSON.stringify(db));return true}catch(e){alert('Could not save changes in this browser. Storage may be full or blocked. Export a backup and free browser storage, then try again.');return false}}function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function cash(n){return (db.profile.currency||'₹')+Number(n||0).toFixed(2)}function today(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}function go(p){page=p;document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('active',b.dataset.p===p));render()}document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>go(b.dataset.p));
 function head(t,d,act=''){return '<div class="head"><div><h2>'+t+'</h2><p class="muted">'+d+'</p></div><div class="actions">'+act+'</div></div>'}
-function render(){document.getElementById('brand').textContent=db.profile.name||'Pathology Lab Billing';({dashboard:dash,invoices:invoicePage,patients:patientPage,tests:testPage,packages:packagePage,doctors:doctorPage,reports:reportPage,settings:settingsPage})[page]()}
+function render(){document.getElementById('brand').textContent=db.profile.name||'Pathology Lab Billing';({dashboard:dash,invoices:invoicePage,patients:patientPage,tests:testPage,packages:packagePage,doctors:doctorPage,reports:reportPage,recycle:recycleBinPage,settings:settingsPage})[page]();if(typeof updateRecycleCount==='function')updateRecycleCount()}
 function tableBills(a){if(!a.length)return '<div class="empty">No records found.</div>';return '<div class="tablewrap"><table><tr><th>Invoice</th><th>Date</th><th>Patient</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th></th></tr>'+a.map(x=>'<tr><td>'+esc(x.no)+'</td><td>'+esc(x.date)+'</td><td>'+esc(x.patient)+'</td><td>'+cash(x.total)+'</td><td>'+cash(x.paid)+'</td><td>'+cash(x.due)+'</td><td><span class="pill '+(x.status==='cancelled'?'cancelled':x.due?'due':'')+'">'+(x.status==='cancelled'?'Cancelled':x.due?'Pending':'Paid')+'</span></td><td class="invoice-actions"><button class="alt" data-invoice-action="open" data-invoice-id="'+esc(x.id)+'">Open</button> <button class="alt" data-invoice-action="edit" data-invoice-id="'+esc(x.id)+'">Edit</button> <button class="alt" data-invoice-action="print" data-invoice-id="'+esc(x.id)+'">Print bill</button> <button class="alt" data-invoice-action="delete" data-invoice-id="'+esc(x.id)+'">Delete</button></td></tr>').join('')+'</table></div>'}
 
 document.addEventListener('click',function(e){let b=e.target.closest('[data-invoice-action]');if(!b)return;let iid=b.dataset.invoiceId,action=b.dataset.invoiceAction;if(action==='open')viewBill(iid);else if(action==='edit')editBill(iid);else if(action==='print')printBill(iid);else if(action==='delete')deleteInvoice(iid)});
@@ -592,6 +592,43 @@ function actions(kind,x,deleted){
 }
 function statusBar(kind,mode){return '<div class="toolbar"><label for="lifeFilter">Show</label><select id="lifeFilter"><option value="active" '+(mode==='active'?'selected':'')+'>Active records</option><option value="deleted" '+(mode==='deleted'?'selected':'')+'>Soft-deleted records</option></select></div>'}
 function rowsFor(kind,mode){return db[kind].filter(function(x){return mode==='deleted'?!!x.deletedAt:!x.deletedAt})}
+function deletedRows(){
+ var rows=[];
+ ['invoices','patients','tests','packages','doctors'].forEach(function(kind){
+  (db[kind]||[]).forEach(function(x){
+   var deleted=!!x.deletedAt||(kind==='invoices'&&x.status==='deleted');
+   if(!deleted)return;
+   var name=kind==='invoices'?(x.no||'Invoice'):(x.name||'Unnamed record');
+   var detail=kind==='invoices'?(x.patient||'')+' · '+cash(x.total):kind==='patients'?(x.phone||'')+' · '+(x.age||'')+' '+(x.gender||''):kind==='tests'?(x.category||'')+' · '+cash(x.price):kind==='packages'?(Array.isArray(x.testIds)?x.testIds.length:0)+' included tests · '+cash(x.price):(x.clinic||'')+' · '+(x.phone||'');
+   rows.push({kind:kind,id:x.id,name:name,detail:detail,deletedAt:x.deletedAt||'',record:x});
+  });
+ });
+ rows.sort(function(a,b){return String(b.deletedAt).localeCompare(String(a.deletedAt))});
+ return rows;
+}
+function updateRecycleCount(){
+ var badge=byId('recycleCount');if(!badge)return;
+ var count=deletedRows().length;badge.textContent=String(count);badge.title=count+' soft-deleted record(s)';
+}
+window.recycleBinPage=function(){
+ var selected=byId('recycleType')?.value||'all',query=(byId('recycleSearch')?.value||'').toLowerCase();
+ var rows=deletedRows(),counts={all:rows.length,invoices:0,patients:0,tests:0,packages:0,doctors:0};
+ rows.forEach(function(x){counts[x.kind]++});
+ var filtered=rows.filter(function(x){return (selected==='all'||x.kind===selected)&&(!query||(x.name+' '+x.detail).toLowerCase().includes(query))});
+ var labels={invoices:'Invoice',patients:'Patient',tests:'Test',packages:'Package',doctors:'Doctor'};
+ var body=filtered.map(function(x){
+  var date=x.deletedAt?new Date(x.deletedAt).toLocaleString():'Previously deleted';
+  return '<tr><td><span class="pill">'+labels[x.kind]+'</span></td><td><b>'+esc(x.name)+'</b></td><td>'+esc(x.detail)+'</td><td>'+esc(date)+'</td><td class="actions"><button type="button" class="alt" data-lifecycle-action="restore" data-kind="'+x.kind+'" data-id="'+escId(x.id)+'">Restore</button> <button type="button" class="danger" data-lifecycle-action="permanent" data-kind="'+x.kind+'" data-id="'+escId(x.id)+'">Permanent delete</button></td></tr>';
+ }).join('');
+ main.innerHTML=head('Recycle Bin','All soft-deleted invoices, patients, tests, packages and doctors are collected here. Restore a record to use it again; permanent deletion cannot be undone.')+
+ '<div class="stats"><div class="stat"><small>All deleted records</small><strong>'+counts.all+'</strong></div><div class="stat"><small>Invoices</small><strong>'+counts.invoices+'</strong></div><div class="stat"><small>Patients</small><strong>'+counts.patients+'</strong></div><div class="stat"><small>Catalogue & doctors</small><strong>'+(counts.tests+counts.packages+counts.doctors)+'</strong></div></div>'+
+ '<section class="panel"><div class="notice">Soft-deleted records remain in this browser until permanently deleted. Export a JSON backup before permanent deletion. This list is local to this browser and device.</div><div class="toolbar"><input id="recycleSearch" placeholder="Search deleted records" value="'+esc(query)+'"><select id="recycleType" aria-label="Filter deleted record type"><option value="all">All record types ('+counts.all+')</option><option value="invoices">Invoices ('+counts.invoices+')</option><option value="patients">Patients ('+counts.patients+')</option><option value="tests">Tests ('+counts.tests+')</option><option value="packages">Packages ('+counts.packages+')</option><option value="doctors">Doctors ('+counts.doctors+')</option></select></div>'+
+ (filtered.length?'<div class="tablewrap"><table><thead><tr><th>Type</th><th>Record</th><th>Details</th><th>Deleted</th><th>Actions</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">'+(rows.length?'No deleted records match your search or filter.':'Recycle Bin is empty. When you soft-delete a record, it will appear here.')+'</div>')+'</section>';
+ byId('recycleType').value=selected;
+ byId('recycleSearch').oninput=function(){var q=this.value;var sel=byId('recycleType').value;window.recycleBinPage();byId('recycleType').value=sel;byId('recycleSearch').value=q;};
+ byId('recycleType').onchange=function(){window.recycleBinPage();};
+ updateRecycleCount();
+};
 function renderPatients(){
  var mode=byId('lifeFilter')?.value||'active',rows=rowsFor('patients',mode);
  var body=rows.map(function(p){return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.age)+' / '+esc(p.gender)+'</td><td>'+esc(p.phone)+'</td><td>'+db.invoices.filter(function(i){return i.patientId===p.id}).length+'</td><td>'+(mode==='active'?'<button type="button" class="alt" data-lifecycle-action="history" data-kind="patients" data-id="'+escId(p.id)+'">History</button> ':'')+actions('patients',p,mode==='deleted')+'</td></tr>'}).join('');
@@ -676,7 +713,7 @@ document.addEventListener('click',function(e){
   }
   if(!commitLife(previous,kind.slice(0,-1)+' permanently deleted',x.no||x.name||id))return;
  }else return;
- if(kind==='invoices')renderInvoices();else if(kind==='patients')renderPatients();else renderCatalog(kind);
+ if(page==='recycle'){window.recycleBinPage();}else if(kind==='invoices')renderInvoices();else if(kind==='patients')renderPatients();else renderCatalog(kind);updateRecycleCount();
 },true);
 var oldEditPatientLife=window.editPatient;
 window.editPatient=function(id){var p=id&&db.patients.find(function(x){return x.id===id});if(p&&p.deletedAt)return alert('Restore this patient before editing.');return oldEditPatientLife(id)};
