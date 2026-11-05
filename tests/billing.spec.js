@@ -1,9 +1,30 @@
 const { test, expect } = require('@playwright/test');
 
-async function openNewInvoice(page) {
+const TEST_PASSWORD = 'lab-test-passphrase-2026';
+
+async function unlockApp(page) {
+  const gate = page.locator('#plbCryptoGate');
+  if (await gate.count()) {
+    await page.locator('#plbCryptoPassword').fill(TEST_PASSWORD);
+    const confirm = page.locator('#plbCryptoConfirm');
+    if (await confirm.count()) await confirm.fill(TEST_PASSWORD);
+    await gate.getByRole('button', { name: /encrypt and continue|unlock data/i }).click();
+    await expect(gate).toHaveCount(0, { timeout: 15000 });
+  }
+}
+
+async function goToApp(page) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await unlockApp(page);
+}
+
+async function reloadApp(page) {
   await page.reload();
+  await unlockApp(page);
+}
+
+async function openNewInvoice(page) {
+  await goToApp(page);
   await page.getByRole('button', { name: /new invoice/i }).first().click();
   await expect(page.locator('#bf')).toBeVisible();
 }
@@ -17,6 +38,26 @@ async function fillInvoice(page, patient = 'Test Patient') {
   await page.locator('#bf input[aria-label="Test price"]').first().fill('500');
   await page.locator('#bf input[name="paid"]').fill('200');
 }
+
+test('encrypts browser storage and never stores the encryption password', async ({ page }) => {
+  await openNewInvoice(page);
+  await fillInvoice(page, 'Encrypted Storage Sentinel');
+  await page.getByRole('button', { name: 'Save invoice' }).click();
+  const stored = await page.evaluate(() => {
+    const rawGet = (key) => Storage.prototype.getItem.call(localStorage, key);
+    const envelope = rawGet('plb_secure_v1');
+    return {
+      envelope: envelope ? JSON.parse(envelope) : null,
+      plaintext: rawGet('pathologyLabBilling_v1'),
+      passwordInStorage: Object.keys(localStorage).some(k => k.toLowerCase().includes('password'))
+    };
+  });
+  expect(stored.envelope.algorithm).toBe('AES-GCM');
+  expect(stored.envelope.kdf).toBe('PBKDF2-SHA-256');
+  expect(JSON.stringify(stored.envelope)).not.toContain('Encrypted Storage Sentinel');
+  expect(stored.plaintext).toBeNull();
+  expect(stored.passwordInStorage).toBeFalsy();
+});
 
 test('creates invoice, calculates balance, and opens printable invoice', async ({ page }) => {
   await openNewInvoice(page);
