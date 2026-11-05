@@ -39,6 +39,32 @@ async function fillInvoice(page, patient = 'Test Patient') {
   await page.locator('#bf input[name="paid"]').fill('200');
 }
 
+test('migrates existing plaintext browser records into encrypted storage', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pathologyLabBilling_v1', JSON.stringify({
+      profile: { name: 'Migrated Laboratory', subtitle: 'Legacy data' },
+      tests: [], packages: [], patients: [], doctors: [],
+      invoices: [{ id: 'legacy-invoice-1', no: 'LEGACY-001', date: '2026-11-03', patient: 'Legacy Patient', phone: '9000000000', total: 250, paid: 0, due: 250, items: [], status: 'active' }]
+    }));
+    localStorage.setItem('plb_audit_v2', JSON.stringify([{ action: 'Legacy audit entry' }]));
+  });
+  await goToApp(page);
+  await expect(page.locator('#brand')).toHaveText('Migrated Laboratory');
+  await page.getByRole('button', { name: 'Invoices', exact: true }).click();
+  await expect(page.locator('#billlist')).toContainText('LEGACY-001');
+  const migration = await page.evaluate(() => {
+    const rawGet = key => Storage.prototype.getItem.call(localStorage, key);
+    return {
+      envelope: rawGet('plb_secure_v1'),
+      legacyData: rawGet('pathologyLabBilling_v1'),
+      legacyAudit: rawGet('plb_audit_v2')
+    };
+  });
+  expect(JSON.parse(migration.envelope).algorithm).toBe('AES-GCM');
+  expect(migration.legacyData).toBeNull();
+  expect(migration.legacyAudit).toBeNull();
+});
+
 test('encrypts browser storage and never stores the encryption password', async ({ page }) => {
   await openNewInvoice(page);
   await fillInvoice(page, 'Encrypted Storage Sentinel');
