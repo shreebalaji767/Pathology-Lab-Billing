@@ -105,7 +105,7 @@ test('records partial payment and updates outstanding balance', async ({ page })
   await page.getByRole('button', { name: 'Record payment' }).click();
   await page.locator('#pay input[name="amount"]').fill('100');
   await page.locator('#pay select[name="method"]').last().selectOption('UPI');
-  await page.getByRole('button', { name: 'Save payment' }).click();
+  await page.locator('#mbody #pay').getByRole('button', { name: 'Save payment' }).click();
   await expect(page.locator('#mbody')).toContainText('₹300.00');
   await expect(page.locator('#mbody')).toContainText('₹200.00');
 });
@@ -300,7 +300,7 @@ test('doctors support edit, soft delete, restore and permanent delete', async ({
 test('tests support edit, soft delete, restore and permanent delete', async ({ page }) => {
   await goToApp(page);
   await page.getByRole('button', { name: 'Test catalogue', exact: true }).click();
-  await page.getByRole('button', { name: 'Add test', exact: true }).click();
+  await page.getByRole('button', { name: /Add test/ }).click();
   await page.locator('#ef input[name="name"]').fill('Custom CBC');
   await page.locator('#ef input[name="category"]').fill('Haematology');
   await page.locator('#ef input[name="price"]').fill('450');
@@ -335,7 +335,7 @@ test('packages support edit, soft delete, restore and permanent delete', async (
   await page.locator('#ef input[name="price"]').fill('100');
   await page.getByRole('button', { name: 'Save test' }).click();
   await page.getByRole('button', { name: 'Test packages', exact: true }).click();
-  await page.getByRole('button', { name: 'Add package', exact: true }).click();
+  await page.getByRole('button', { name: /Add package/ }).click();
   await page.locator('#ef input[name="name"]').fill('Basic Health Package');
   await page.locator('#ef input[name="price"]').fill('350');
   await page.locator('#ef input[name="tests"]').check();
