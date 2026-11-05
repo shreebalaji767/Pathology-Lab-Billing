@@ -68,7 +68,9 @@ test('migrates existing plaintext browser records into encrypted storage', async
 test('encrypts browser storage and never stores the encryption password', async ({ page }) => {
   await openNewInvoice(page);
   await fillInvoice(page, 'Encrypted Storage Sentinel');
+  const previousEnvelope = await page.evaluate(() => Storage.prototype.getItem.call(localStorage, 'plb_secure_v1'));
   await page.getByRole('button', { name: 'Save invoice' }).click();
+  await page.waitForFunction(previous => Storage.prototype.getItem.call(localStorage, 'plb_secure_v1') !== previous, previousEnvelope);
   const stored = await page.evaluate(() => {
     const rawGet = (key) => Storage.prototype.getItem.call(localStorage, key);
     const envelope = rawGet('plb_secure_v1');
