@@ -437,4 +437,116 @@ window.settingsPage=function(){
 };
 audit('Application opened','Billing application initialized');
 })();
+</script>
+<script>
+(function(){
+'use strict';
+function byId(id){return document.getElementById(id)}
+function auditLife(action,detail){try{var a=JSON.parse(localStorage.getItem('plb_audit_v2')||'[]');a.push({at:new Date().toISOString(),action:action,detail:String(detail||'')});localStorage.setItem('plb_audit_v2',JSON.stringify(a.slice(-1000)))}catch(e){}}
+function commitLife(previous,action,detail){
+ if(window.save()===false){db=previous;alert('Could not save this change. Your previous data has been restored.');return false}
+ auditLife(action,detail);return true;
+}
+function escId(v){return esc(String(v==null?'':v))}
+function actions(kind,x,deleted){
+ var id=escId(x.id);
+ if(deleted)return '<button type="button" class="alt" data-lifecycle-action="restore" data-kind="'+kind+'" data-id="'+id+'">Restore</button> <button type="button" class="danger" data-lifecycle-action="permanent" data-kind="'+kind+'" data-id="'+id+'">Permanent delete</button>';
+ return '<button type="button" class="alt" data-lifecycle-action="edit" data-kind="'+kind+'" data-id="'+id+'">Edit</button> <button type="button" class="alt" data-lifecycle-action="soft" data-kind="'+kind+'" data-id="'+id+'">Soft delete</button> <button type="button" class="danger" data-lifecycle-action="permanent" data-kind="'+kind+'" data-id="'+id+'">Permanent delete</button>';
+}
+function statusBar(kind,mode){return '<div class="toolbar"><label for="lifeFilter">Show</label><select id="lifeFilter"><option value="active" '+(mode==='active'?'selected':'')+'>Active records</option><option value="deleted" '+(mode==='deleted'?'selected':'')+'>Soft-deleted records</option></select></div>'}
+function rowsFor(kind,mode){return db[kind].filter(function(x){return mode==='deleted'?!!x.deletedAt:!x.deletedAt})}
+function renderPatients(){
+ var mode=byId('lifeFilter')?.value||'active',rows=rowsFor('patients',mode);
+ var body=rows.map(function(p){return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.age)+' / '+esc(p.gender)+'</td><td>'+esc(p.phone)+'</td><td>'+db.invoices.filter(function(i){return i.patientId===p.id}).length+'</td><td>'+(mode==='active'?'<button type="button" class="alt" data-lifecycle-action="history" data-kind="patients" data-id="'+escId(p.id)+'">History</button> ':'')+actions('patients',p,mode==='deleted')+'</td></tr>'}).join('');
+ var host=byId('patientRecords');if(host)host.innerHTML=rows.length?'<div class="tablewrap"><table><tr><th>Name</th><th>Age / Gender</th><th>Phone</th><th>Invoices</th><th>Actions</th></tr>'+body+'</table></div>':'<div class="empty">No '+(mode==='deleted'?'soft-deleted':'active')+' patients.</div>';
+}
+window.patientPage=function(){
+ main.innerHTML=head('Patients','Edit, soft-delete, restore or permanently delete patient records. Linked invoices are retained; permanent deletion anonymizes linked patient details.','<button onclick="editPatient()">＋ Add patient</button>')+'<section class="panel">'+statusBar('patients','active')+'<div id="patientRecords"></div></section>';
+ byId('lifeFilter').onchange=renderPatients;renderPatients();
+};
+function renderCatalog(kind){
+ var mode=byId('lifeFilter')?.value||'active',rows=rowsFor(kind,mode),host=byId('lifeRecords');if(!host)return;
+ var heads=kind==='tests'?'<th>Test</th><th>Category</th><th>Price</th>':kind==='packages'?'<th>Package</th><th>Included tests</th><th>Price</th>':'<th>Doctor</th><th>Clinic</th><th>Phone</th>';
+ var body=rows.map(function(x){
+  var cells=kind==='tests'?'<td>'+esc(x.name)+'</td><td>'+esc(x.category)+'</td><td>'+cash(x.price)+'</td>':kind==='packages'?'<td>'+esc(x.name)+'</td><td>'+((Array.isArray(x.testIds)?x.testIds:[]).map(function(id){var t=db.tests.find(function(z){return z.id===id});return t?esc(t.name):''}).filter(Boolean).join(', ')||'—')+'</td><td>'+cash(x.price)+'</td>':'<td>'+esc(x.name)+'</td><td>'+esc(x.clinic)+'</td><td>'+esc(x.phone)+'</td>';
+  return '<tr>'+cells+'<td>'+actions(kind,x,mode==='deleted')+'</td></tr>';
+ }).join('');
+ host.innerHTML=rows.length?'<div class="tablewrap"><table><tr>'+heads+'<th>Actions</th></tr>'+body+'</table></div>':'<div class="empty">No '+(mode==='deleted'?'soft-deleted':'active')+' records.</div>';
+}
+function catalogPage(kind){
+ var title=kind==='tests'?'Test catalogue':kind==='packages'?'Test packages':'Doctors';
+ var desc=kind==='tests'?'Manage test names, categories and prices.':kind==='packages'?'Manage package names, included tests and package prices.':'Manage referring doctor details.';
+ var add=kind==='tests'?'<button class="alt" onclick="addCommonTests()">＋ Add common test names</button> <button onclick="editTest()">＋ Add test</button>':kind==='packages'?'<button onclick="editPackage()">＋ Add package</button>':'<button onclick="editDoctor()">＋ Add doctor</button>';
+ main.innerHTML=head(title,desc,add)+'<section class="panel">'+statusBar(kind,'active')+'<div id="lifeRecords"></div></section>';
+ byId('lifeFilter').onchange=function(){renderCatalog(kind)};renderCatalog(kind);
+}
+window.testPage=function(){catalogPage('tests')};
+window.packagePage=function(){catalogPage('packages')};
+window.doctorPage=function(){catalogPage('doctors')};
+function renderInvoices(){
+ var mode=byId('lifeFilter')?.value||'active',q=(byId('q')?.value||'').toLowerCase(),date=byId('invoiceDate')?.value||'';
+ var rows=db.invoices.slice().reverse().filter(function(x){
+  var deleted=x.status==='deleted'||!!x.deletedAt;
+  return (mode==='deleted'?deleted:!deleted)&&(String(x.no)+' '+String(x.patient)+' '+String(x.phone)).toLowerCase().includes(q)&&(!date||x.date===date);
+ });
+ var html=rows.map(function(x){
+  var deleted=x.status==='deleted'||!!x.deletedAt;
+  var status=deleted?'Soft deleted':x.status==='cancelled'?'Cancelled':x.due>0?'Pending':'Paid';
+  var buttons=deleted?'<button class="alt" data-lifecycle-action="restore" data-kind="invoices" data-id="'+escId(x.id)+'">Restore</button> <button class="danger" data-lifecycle-action="permanent" data-kind="invoices" data-id="'+escId(x.id)+'">Permanent delete</button>':'<button class="alt" data-lifecycle-action="open" data-kind="invoices" data-id="'+escId(x.id)+'">Open</button> <button class="alt" data-lifecycle-action="edit" data-kind="invoices" data-id="'+escId(x.id)+'">Edit</button> <button class="alt" data-lifecycle-action="print" data-kind="invoices" data-id="'+escId(x.id)+'">Print</button> <button class="alt" data-lifecycle-action="soft" data-kind="invoices" data-id="'+escId(x.id)+'">Soft delete</button> <button class="danger" data-lifecycle-action="permanent" data-kind="invoices" data-id="'+escId(x.id)+'">Permanent delete</button>';
+  return '<tr><td>'+esc(x.no)+'</td><td>'+esc(x.date)+'</td><td>'+esc(x.patient)+'</td><td>'+cash(x.total)+'</td><td>'+cash(x.paid)+'</td><td>'+cash(x.due)+'</td><td>'+esc(status)+'</td><td class="invoice-actions">'+buttons+'</td></tr>';
+ }).join('');
+ var host=byId('billlist');if(host)host.innerHTML=rows.length?'<div class="tablewrap"><table><tr><th>Invoice</th><th>Date</th><th>Patient</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th>Actions</th></tr>'+html+'</table></div>':'<div class="empty">No '+(mode==='deleted'?'soft-deleted':'active')+' invoices found.</div>';
+}
+window.invoicePage=function(){
+ main.innerHTML=head('Invoices','Edit, print, soft-delete, restore or permanently delete invoices.','<button onclick="newBill()">＋ New invoice</button>')+'<section class="panel"><div class="toolbar"><input id="q" placeholder="Search patient or invoice"><input type="date" id="invoiceDate" aria-label="Filter by date"><label for="lifeFilter">Show</label><select id="lifeFilter"><option value="active">Active invoices</option><option value="deleted">Soft-deleted invoices</option></select></div><div id="billlist"></div></section>';
+ byId('q').oninput=renderInvoices;byId('invoiceDate').onchange=renderInvoices;byId('lifeFilter').onchange=renderInvoices;renderInvoices();
+};
+window.filterBills=renderInvoices;
+document.addEventListener('click',function(e){
+ var b=e.target.closest('[data-lifecycle-action]');if(!b)return;
+ var kind=b.dataset.kind,id=b.dataset.id,action=b.dataset.lifecycleAction;
+ if(action==='open'){viewBill(id);return}if(action==='print'){printBill(id);return}if(action==='history'){history(id);return}
+ if(!['invoices','patients','tests','packages','doctors'].includes(kind))return;
+ var x=db[kind].find(function(v){return v.id===id});if(!x)return;
+ if(action==='edit'){
+  if(x.deletedAt||(kind==='invoices'&&x.status==='deleted'))return alert('Restore this record before editing it.');
+  if(kind==='invoices')editBill(id);else if(kind==='patients')editPatient(id);else if(kind==='tests')editTest(id);else if(kind==='packages')editPackage(id);else editDoctor(id);
+  return;
+ }
+ var previous=JSON.parse(JSON.stringify(db));
+ if(action==='soft'){
+  if(x.deletedAt||(kind==='invoices'&&x.status==='deleted'))return;
+  if(!confirm('Move this '+(kind==='invoices'?'invoice':kind==='patients'?'patient':kind==='tests'?'test':kind==='packages'?'package':'doctor')+' to Soft deleted? It will be retained and can be restored.'))return;
+  x.deletedAt=new Date().toISOString();if(kind==='invoices')x.status='deleted';
+  if(!commitLife(previous,kind.slice(0,-1)+' soft-deleted',x.no||x.name||id))return;
+ }else if(action==='restore'){
+  if(!x.deletedAt&&!(kind==='invoices'&&x.status==='deleted'))return;
+  if(!confirm('Restore this record to the active list?'))return;
+  delete x.deletedAt;if(kind==='invoices'&&x.status==='deleted')x.status='active';
+  if(!commitLife(previous,kind.slice(0,-1)+' restored',x.no||x.name||id))return;
+ }else if(action==='permanent'){
+  var message='PERMANENTLY DELETE this '+kind.slice(0,-1)+'? This cannot be undone. Export a backup first.';
+  if(kind==='patients'){
+   var linked=db.invoices.filter(function(i){return i.patientId===x.id||(!i.patientId&&i.patient===x.name&&String(i.phone||'')===String(x.phone||''))});
+   message='PERMANENTLY DELETE '+x.name+'? This removes the patient and anonymizes name, age, gender, phone and address on '+linked.length+' linked invoice(s). Invoice totals, test descriptions and payment history remain. This cannot be undone. Export a backup first.';
+   if(!confirm(message))return;
+   linked.forEach(function(i){i.patient='Deleted patient';i.age='';i.gender='';i.phone='';i.address='';i.patientId=null;i.patientDeleted=true});
+   db.patients=db.patients.filter(function(v){return v.id!==id});
+  }else{
+   if(!confirm(message))return;
+   db[kind]=db[kind].filter(function(v){return v.id!==id});
+  }
+  if(!commitLife(previous,kind.slice(0,-1)+' permanently deleted',x.no||x.name||id))return;
+ }else return;
+ if(kind==='invoices')renderInvoices();else if(kind==='patients')renderPatients();else renderCatalog(kind);
+},true);
+var oldEditPatientLife=window.editPatient;
+window.editPatient=function(id){var p=id&&db.patients.find(function(x){return x.id===id});if(p&&p.deletedAt)return alert('Restore this patient before editing.');return oldEditPatientLife(id)};
+var oldEditTestLife=window.editTest;
+window.editTest=function(id){var x=id&&db.tests.find(function(v){return v.id===id});if(x&&x.deletedAt)return alert('Restore this test before editing.');return oldEditTestLife(id)};
+var oldEditPackageLife=window.editPackage;
+window.editPackage=function(id){var x=id&&db.packages.find(function(v){return v.id===id});if(x&&x.deletedAt)return alert('Restore this package before editing.');return oldEditPackageLife(id)};
+var oldEditDoctorLife=window.editDoctor;
+window.editDoctor=function(id){var x=id&&db.doctors.find(function(v){return v.id===id});if(x&&x.deletedAt)return alert('Restore this doctor before editing.');return oldEditDoctorLife(id)};
+})();
 </script></body></html>
