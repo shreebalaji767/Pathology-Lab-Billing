@@ -125,6 +125,14 @@ img,svg,video,canvas,iframe{max-width:100%}
  .line{grid-template-columns:minmax(0,1fr) 48px 48px 28px;gap:4px}
  .line input{padding:6px 3px;font-size:12px}
 }
+
+/* Mobile navigation fix: keep the nav viewport-sized and scroll its buttons internally.
+   The earlier min-width:max-content rule made the entire body 846px wide on phones. */
+.layout{min-width:0;width:100%;max-width:100%}
+aside{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+.nav{display:flex;width:100%;min-width:0!important;max-width:100%;box-sizing:border-box;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.nav button{flex:0 0 auto;white-space:nowrap}
+@media(min-width:1051px){.nav{display:grid;overflow-x:visible}.nav button{white-space:normal}}
 </style></head><body>
 <header class="top"><div><h1 id="brand">YOUR PATHOLOGY LAB</h1><small id="brandSubtitle">Local laboratory billing & management</small></div><div class="actions"><button class="alt" onclick="go('settings')">Settings</button><button class="alt" onclick="newBill()">＋ New invoice</button></div></header>
 <div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="recycle">♻ Recycle Bin <span id="recycleCount" class="pill" style="margin-left:5px">0</span></button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
