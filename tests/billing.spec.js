@@ -47,6 +47,22 @@ test('landing page introduces the app and links to the preserved billing workspa
   await expect(page.getByRole('heading', { name: /Organised workflows/i })).toBeVisible();
 });
 
+test('transparent logo is used on the landing page and hidden in print', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', './logo.svg');
+  await expect(page.locator('a.brand img.brand-logo')).toHaveAttribute('src', './logo.svg');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('a.brand img.brand-logo')).toBeHidden();
+});
+
+test('workspace logo uses the same asset and is excluded from printing', async ({ page }) => {
+  await goToApp(page);
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', './logo.svg');
+  await expect(page.locator('a.home-brand img.brand-logo')).toHaveAttribute('src', './logo.svg');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('a.home-brand img.brand-logo')).toBeHidden();
+});
+
 test('refreshing the workspace keeps the browser on the workspace page', async ({ page }) => {
   await goToApp(page);
   await page.getByRole('button', { name: 'Invoices', exact: true }).click();
