@@ -17,7 +17,33 @@ section.content{padding:74px 0}.section-heading{text-align:center;max-width:650p
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr;gap:35px}.preview{max-width:520px;width:100%;margin:auto}.workflow-grid{grid-template-columns:1fr;gap:25px}.features{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.wrap{width:calc(100% - 28px)}header{height:66px}.brand{font-size:14px}.mark{width:42px;height:42px}.headlink{font-size:12px;padding:9px 11px}.hero{padding:44px 0 48px}h1{font-size:40px}.hero-copy{font-size:16px}.actions .btn{width:100%}.trust-grid{grid-template-columns:1fr;gap:13px}.trust-item{justify-content:flex-start}section.content{padding:54px 0}.features{grid-template-columns:1fr}.feature{min-height:0}.cta{padding:48px 0}.cta-panel{padding:27px 22px;display:block}.cta-panel h2{font-size:26px}.cta-panel .btn{width:100%;margin-top:22px}.footer-inner{flex-direction:column;gap:6px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
-@media print{.brand-logo,.mark{display:none!important}}\n</style></head>
+@media print{.brand-logo,.mark{display:none!important}}\n
+/* Landing page: matching glassmorphism and card-based navigation */
+:root{--glass-border:rgba(255,255,255,.82);--glass-bg:rgba(255,255,255,.68);--glass-shadow:0 16px 42px rgba(24,59,80,.09)}
+body{background:radial-gradient(ellipse at 12% 4%,rgba(8,126,139,.13),transparent 34%),radial-gradient(ellipse at 90% 15%,rgba(106,143,183,.13),transparent 32%),#f1f6f8}
+header.wrap{position:sticky;top:10px;z-index:20;margin-top:10px;padding:0 18px;height:66px;border:1px solid var(--glass-border);border-radius:18px;background:rgba(255,255,255,.76);box-shadow:0 8px 28px rgba(24,59,80,.07);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.brand{gap:12px!important}.brand .mark{background:rgba(255,255,255,.7)!important;border:1px solid rgba(255,255,255,.9);border-radius:13px;box-shadow:0 4px 14px rgba(24,59,80,.08)}
+.headlink{border:1px solid rgba(8,126,139,.18);border-radius:12px!important;background:rgba(255,255,255,.72);box-shadow:0 4px 14px rgba(24,59,80,.06)}
+.hero{padding-top:68px!important}
+.preview,.feature,.step,.cta-panel{border:1px solid var(--glass-border)!important;box-shadow:var(--glass-shadow)!important}
+.preview{background:rgba(255,255,255,.68)!important;border-radius:22px!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.preview-top,.preview-label,.preview-row,.preview-total{border-color:rgba(210,225,230,.72)!important}
+.features{gap:18px!important}
+.feature{background:rgba(255,255,255,.72)!important;border-radius:18px!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .18s ease,box-shadow .18s ease}
+.feature:hover{transform:translateY(-3px);box-shadow:0 20px 48px rgba(24,59,80,.12)!important}
+.feature-icon,.step-num{border:1px solid rgba(255,255,255,.9);box-shadow:0 4px 12px rgba(24,59,80,.06)}
+.workflow{background:rgba(231,242,244,.54)!important;border-block:1px solid rgba(255,255,255,.82)!important;backdrop-filter:blur(10px)}
+.step{background:rgba(255,255,255,.76)!important;border-radius:15px!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.cta-panel{background:linear-gradient(135deg,rgba(16,59,80,.96),rgba(8,104,117,.94))!important;border-radius:22px!important;box-shadow:0 18px 45px rgba(16,59,80,.2)!important}
+.btn{border-radius:12px!important;box-shadow:0 6px 18px rgba(8,126,139,.13);transition:transform .16s ease,box-shadow .16s ease}
+.btn:hover,.headlink:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(8,126,139,.16)}
+footer{border-top:1px solid rgba(255,255,255,.9)!important;background:rgba(255,255,255,.48)}
+@media(max-width:850px){header.wrap{top:6px;margin-top:6px}.hero{padding-top:46px!important}}
+@media(max-width:560px){header.wrap{height:60px;padding:0 10px;border-radius:14px}.brand .mark{width:38px;height:38px}.headlink{padding:8px 10px!important}.hero{padding-top:38px!important}.feature,.step{border-radius:14px!important}}
+@media(prefers-reduced-motion:reduce){.feature,.btn,.headlink{transition:none!important}.feature:hover,.btn:hover,.headlink:hover{transform:none}}
+@media print{header.wrap,.preview,.feature,.step,.cta-panel{backdrop-filter:none!important;box-shadow:none!important}}
+
+</style></head>
 <body>
 <header class="wrap"><a class="brand" href="./"><span class="mark"><img class="brand-logo" src="./logo.svg" alt="" width="46" height="46"></span><span>Pathology Lab Billing<small>Laboratory management workspace</small></span></a><a class="headlink" href="./app.html">Open workspace ↗</a></header>
 <main>
