@@ -60,11 +60,20 @@ The application helps a laboratory maintain patient and billing information, con
 
 > Available actions can vary by record type and screen. Review the interface and verify the workflow with sample data before using it operationally.
 
+## Landing page
+
+The site opens on a responsive introduction page with feature highlights and a direct link to the billing workspace. Select **Open Billing System** to enter the application.
+
+- **Landing page:** https://shreebalaji767.github.io/Pathology-Lab-Billing/
+- **Billing workspace:** https://shreebalaji767.github.io/Pathology-Lab-Billing/app.html
+
+The original billing application is preserved in `app.html`; `index.html` is the public landing page.
+
 ## Getting started
 
 ### Use the hosted application
 
-Open the [Pathology Lab Billing application](https://shreebalaji767.github.io/Pathology-Lab-Billing/) in a modern browser.
+Open the [Pathology Lab Billing landing page](https://shreebalaji767.github.io/Pathology-Lab-Billing/) and select **Open Billing System**, or open the [billing workspace directly](https://shreebalaji767.github.io/Pathology-Lab-Billing/app.html).
 
 ### Run locally
 
@@ -75,7 +84,7 @@ No build step or application server is required for the static app.
    git clone https://github.com/shreebalaji767/Pathology-Lab-Billing.git
    cd Pathology-Lab-Billing
    ```
-2. Open `index.html` in a modern browser, or serve the folder with any static file server.
+2. Open `index.html` for the landing page or `app.html` to enter the billing workspace directly in a modern browser, or serve the folder with any static file server.
 3. Enter sample laboratory details and create test records and invoices to explore the workflow.
 
 For local end-to-end tests, install the development dependency as described under [Testing](#testing).
@@ -132,7 +141,8 @@ A passing syntax check or CI run does not replace operational validation. Before
 ├── tests/
 │   └── billing.spec.js
 ├── favicon.svg
-├── index.html
+├── index.html        # Landing page
+├── app.html          # Billing workspace
 ├── package.json
 ├── playwright.config.js
 └── README.md
