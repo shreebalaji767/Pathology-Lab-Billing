@@ -243,7 +243,7 @@ test('shows a transparent favicon and prints a bill directly from the invoice li
   await expect(popup.locator('body')).toContainText('Complete Blood Count');
 
   const favicon = await page.locator('link[rel="icon"]').getAttribute('href');
-  expect(favicon).toContain('favicon.svg');
+  expect(favicon).toContain('logo.svg');
   const response = await page.request.get(new URL(favicon, page.url()).toString());
   expect(response.ok()).toBeTruthy();
   const svg = await response.text();
