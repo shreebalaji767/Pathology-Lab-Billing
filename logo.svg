@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Pathology laboratory logo">
+  <g fill="none" stroke="#123b50" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 15h27v12H49v21l20 20"/>
+    <path d="M67 19h23v12H67M78 31v17"/>
+    <path d="M34 58a29 29 0 0 0 51 19l8-9"/>
+    <path d="M19 111h91"/>
+    <path d="M47 91h36"/>
+  </g>
+  <path d="M105 61c0 13-9 22-20 22s-20-9-20-22c0-11 20-34 20-34s20 23 20 34Z" fill="#087e8b"/>
+  <path d="M85 47v28M71 61h28" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+</svg>
