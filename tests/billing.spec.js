@@ -14,7 +14,7 @@ async function unlockApp(page) {
 }
 
 async function goToApp(page) {
-  await page.goto('/');
+  await page.goto('/app.html');
   await unlockApp(page);
 }
 
@@ -38,6 +38,14 @@ async function fillInvoice(page, patient = 'Test Patient') {
   await page.locator('#bf input[aria-label="Test price"]').first().fill('500');
   await page.locator('#bf input[name="paid"]').fill('200');
 }
+
+test('landing page introduces the app and links to the preserved billing workspace', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/Pathology Lab Billing/);
+  await expect(page.getByRole('heading', { name: /Less paperwork/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Open Billing System/i }).first()).toHaveAttribute('href', './app.html');
+  await expect(page.getByRole('heading', { name: /Organised workflows/i })).toBeVisible();
+});
 
 test('migrates existing plaintext browser records into encrypted storage', async ({ page }) => {
   await page.addInitScript(() => {
