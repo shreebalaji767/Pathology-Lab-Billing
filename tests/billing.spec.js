@@ -68,14 +68,14 @@ test('refreshing the workspace keeps the browser on the workspace page', async (
   await page.getByRole('button', { name: 'Invoices', exact: true }).click();
   await page.reload();
   await unlockApp(page);
-  await expect(page).toHaveURL(/\\/app\\.html$/);
+  await expect(page).toHaveURL(/\/app\.html$/);
   await expect(page.locator('#main')).toBeVisible();
 });
 
 test('clicking the workspace logo returns to the landing page', async ({ page }) => {
   await goToApp(page);
   await page.locator('a.home-brand').click();
-  await expect(page).toHaveURL(/\\/$/);
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('heading', { name: /Less paperwork/i })).toBeVisible();
 });
 
