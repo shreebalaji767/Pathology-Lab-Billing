@@ -63,6 +63,18 @@ test('workspace logo uses the same asset and is excluded from printing', async (
   await expect(page.locator('a.home-brand img.brand-logo')).toBeHidden();
 });
 
+test('workspace starts without runtime errors and opens the recycle bin', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await goToApp(page);
+  await expect(page.locator('#main')).toContainText('Dashboard');
+  await expect(page.locator('#plbCryptoForm input[name="username"]')).toBeAttached();
+  await expect(page.locator('#plbCryptoForm input[name="username"]')).toBeHidden();
+  await page.getByRole('button', { name: /Recycle Bin/ }).click();
+  await expect(page.locator('#main')).toContainText('Recycle Bin');
+  expect(pageErrors).toEqual([]);
+});
+
 test('refreshing the workspace keeps the browser on the workspace page', async ({ page }) => {
   await goToApp(page);
   await page.getByRole('button', { name: 'Invoices', exact: true }).click();
