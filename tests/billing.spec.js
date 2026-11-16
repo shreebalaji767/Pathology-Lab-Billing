@@ -66,10 +66,11 @@ test('workspace logo uses the same asset and is excluded from printing', async (
 test('workspace starts without runtime errors and opens the recycle bin', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
-  await goToApp(page);
-  await expect(page.locator('#main')).toContainText('Dashboard');
+  await page.goto('/app.html');
   await expect(page.locator('#plbCryptoForm input[name="username"]')).toBeAttached();
   await expect(page.locator('#plbCryptoForm input[name="username"]')).toBeHidden();
+  await unlockApp(page);
+  await expect(page.locator('#main')).toContainText('Dashboard');
   await page.getByRole('button', { name: /Recycle Bin/ }).click();
   await expect(page.locator('#main')).toContainText('Recycle Bin');
   expect(pageErrors).toEqual([]);
