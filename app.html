@@ -135,6 +135,94 @@ aside{min-width:0;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hid
 @media(max-width:1050px){.layout{display:grid;grid-template-columns:minmax(0,1fr);width:100%;max-width:100%;overflow:hidden}aside{overflow:hidden}.nav{width:100%;max-width:100%;min-width:0!important}.nav button{flex:0 0 auto}}
 .nav button{flex:0 0 auto;white-space:nowrap}
 @media(min-width:1051px){.nav{display:grid;overflow-x:visible}.nav button{white-space:normal}}
+
+/* Clean UI refresh: visual-only overrides; preserve existing workflows and markup */
+:root{
+ --navy:#183b56;--teal:#147d82;--bg:#f5f7fa;--ink:#182b3a;--muted:#718096;--line:#e4eaf0;
+ --surface:#fff;--soft:#f1f6f8;--shadow:0 8px 24px rgba(25,52,72,.055);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+.top{position:sticky;top:0;z-index:4;min-height:72px;background:#fff;color:var(--ink);border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(24,48,66,.035);padding:12px clamp(16px,3vw,32px)}
+.top h1{font-size:17px;font-weight:750;letter-spacing:-.025em;color:#17364c}
+.top small{display:block;color:#788996;font-size:12px;margin-top:2px}
+.home-brand{gap:11px}.brand-logo{width:42px;height:42px}
+.top .actions{margin:0;gap:8px}
+button{border-radius:9px;padding:9px 14px;background:#183b56;color:#fff;font-weight:650;box-shadow:none;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+button:hover{background:#245574}
+button:active{transform:translateY(1px)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(20,125,130,.2);outline-offset:1px;border-color:#25888d}
+button.alt{background:#f0f5f7;color:#29495d;border:1px solid #e1e9ee}
+button.alt:hover{background:#e6eff2}
+button.danger{background:#fff3f1;color:#b5473c;border:1px solid #f5d9d5}
+button.danger:hover{background:#ffe9e6}
+.layout{max-width:1600px;min-height:calc(100vh - 72px);grid-template-columns:238px minmax(0,1fr);gap:0}
+aside{background:#fff;border-right:1px solid var(--line);padding:18px 12px}
+.nav{gap:4px}
+.nav button{position:relative;display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;color:#5a6d7a}
+.nav button:hover{background:#f3f7f8;color:#254c60}
+.nav button.active{background:#eaf4f4;color:#126d73;font-weight:750}
+.nav button.active:before{content:"";position:absolute;left:-12px;top:7px;bottom:7px;width:3px;border-radius:0 4px 4px 0;background:#16838a}
+main{padding:clamp(18px,2.5vw,34px);min-width:0}
+.head{align-items:center;margin-bottom:22px}
+.head h2{font-size:clamp(22px,2.4vw,28px);font-weight:760;letter-spacing:-.04em;color:#18384e}
+.head .muted{margin:5px 0 0;font-size:13px;color:#7a8995}
+.panel,.stat{background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}
+.panel{padding:20px;margin-bottom:18px}
+.panel h3{font-size:15px;font-weight:730;letter-spacing:-.015em;margin:0 0 14px;color:#29475a}
+.stats{gap:14px;margin-bottom:18px}
+.stat{padding:18px 19px;min-height:104px}
+.stat small{font-size:12px;font-weight:600;color:#778895}
+.stat strong{font-size:clamp(21px,2vw,27px);letter-spacing:-.035em;color:#1c4056;margin-top:8px;overflow-wrap:anywhere}
+.notice{border:1px solid #dcebed;background:#f0f8f8;color:#42666b;border-radius:10px;padding:13px 15px;font-size:12px}
+.toolbar{gap:10px;margin-bottom:15px}
+.toolbar input,.toolbar select,.field input,.field textarea,.field select{border:1px solid #d8e1e7;border-radius:9px;background:#fff;color:#263d4c;padding:10px 12px;min-height:40px}
+.toolbar input::placeholder,.field input::placeholder{color:#a0acb5}
+.field{gap:6px}
+.field label{font-size:12px;font-weight:650;color:#536978}
+.field textarea{resize:vertical}
+table{border-collapse:separate;border-spacing:0}
+th,td{padding:12px 13px;border-bottom:1px solid #edf1f4}
+th{background:#f7f9fb;color:#71818d;font-size:10px;letter-spacing:.06em;font-weight:750}
+td{font-size:13px;color:#344b5a}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#fbfcfd}
+.pill{font-size:10px;font-weight:750;letter-spacing:.01em}
+.empty{padding:36px 18px;color:#82919b;font-size:13px}
+.modal{background:rgba(17,38,52,.48);backdrop-filter:blur(3px)}
+.modalbox{border:1px solid #e7edf1;border-radius:16px;box-shadow:0 24px 70px rgba(12,32,45,.2)}
+.modalhead{padding-bottom:12px;border-bottom:1px solid #edf1f4}
+.modalhead h3{font-size:17px;color:#203f53}
+.line input,.line select{border:1px solid #d8e1e7;border-radius:8px;padding:9px}
+.settings{gap:14px}
+@media(max-width:1050px){
+ .layout{grid-template-columns:minmax(0,1fr)}
+ aside{padding:9px 14px;border-bottom:1px solid var(--line)}
+ .nav{gap:5px}
+ .nav button{width:auto;padding:9px 12px}
+ .nav button.active:before{left:8px;right:8px;top:auto;bottom:0;width:auto;height:2px}
+}
+@media(max-width:700px){
+ .top{position:relative;padding:12px 14px}
+ .top .actions{width:100%;display:flex}
+ .top .actions button{flex:1}
+ main{padding:16px 12px}
+ .head{gap:10px;margin-bottom:16px}
+ .head .actions button{min-height:40px}
+ .stats{gap:9px}
+ .stat{padding:13px;min-height:92px}
+ .panel{padding:14px;border-radius:11px}
+ .toolbar input{max-width:none;flex:1 1 100%}
+ .toolbar select{flex:1 1 120px}
+ th,td{padding:10px 9px}
+}
+@media(max-width:390px){
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stat strong{font-size:19px}
+ .home-brand{gap:8px}.brand-logo{width:36px;height:36px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}button{transition:none}}
+
 </style></head><body>
 <header class="top"><div><a class="home-brand" href="./" aria-label="Go to Pathology Lab Billing landing page"><img class="brand-logo" src="./logo.svg" alt="" width="40" height="40"><h1 id="brand">YOUR PATHOLOGY LAB</h1></a><small id="brandSubtitle">Local laboratory billing & management</small></div><div class="actions"><button class="alt" onclick="go('settings')">Settings</button><button class="alt" onclick="newBill()">＋ New invoice</button></div></header>
 <div class="layout"><aside><nav class="nav" id="nav"><button class="active" data-p="dashboard">Dashboard</button><button data-p="invoices">Invoices</button><button data-p="patients">Patients</button><button data-p="tests">Test catalogue</button><button data-p="packages">Test packages</button><button data-p="doctors">Doctors</button><button data-p="reports">Collection reports</button><button data-p="recycle">♻ Recycle Bin <span id="recycleCount" class="pill" style="margin-left:5px">0</span></button><button data-p="settings">Settings & backup</button></nav></aside><main id="main"></main></div>
